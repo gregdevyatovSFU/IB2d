@@ -659,8 +659,17 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     Fxh = np.array(vort) 
     Fyh =np.array(vort) 
     F_Lag = np.zeros((xLag.size,2)) 
-    print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,springs_Yes,\
-    connectsMat,tracers,concentration_Yes,C,Fxh,Fyh,F_Lag)
+
+    print_vtk_files(Output_Params, ctsave,
+                    vort, uMag.T, 
+                    p.T,
+                    U.T, V.T,
+                    Lx, Ly,
+                    Nx,Ny,
+                    lagPts, 
+                    springs_Yes, connectsMat, tracers,concentration_Yes, C,
+                    Fxh.T, Fyh.T, F_Lag)
+    
     print('\n |****** Begin IMMERSED BOUNDARY SIMULATION! ******| \n\n')
     print('Current Time(s): {0}\n'.format(current_time))
     ctsave += 1
@@ -1420,7 +1429,7 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
     lagPtsName = 'lagsPts.'+strNUM+'.vtk'
 
     #Print Lagrangian Pts to .vtk format
-    savevtk_points(lagPts, lagPtsName, 'lagPts')
+    # savevtk_points(lagPts, lagPtsName, 'lagPts')
 
     # Print Spring Connections (* if springs *)
     if springs_Yes:
@@ -1476,7 +1485,12 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
     if Output_Params[9] == 1:
         velocityName = 'u.'+strNUM+'.vtk'
         savevtk_vector(U, V, velocityName, 'u',dx,dy)
-
+    
+    from pathlib import Path
+    field_file = Path().cwd() / f"fields.{strNUM}"
+    lag_file = Path().cwd() / f"lag_points.{strNUM}"
+    np.savez(field_file, u=U, v=V, f_x=fXGrid, f_y=fYGrid)
+    np.savez(lag_file, lag_points=lagPts, conns=connectsMat)
     #Get out of viz_IB2d folder
     os.chdir('..')
 
