@@ -1,6 +1,8 @@
 # Generated data
 viz_IB2d/
 hier_IB2d_data/
+*.vtk
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

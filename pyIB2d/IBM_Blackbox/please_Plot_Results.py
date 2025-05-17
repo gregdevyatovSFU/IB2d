@@ -109,7 +109,7 @@ def please_Plot_Results(ds,X,Y,U,V,vort,uMag,p,chiX,chiY,\
     # # # # # PLOTS LAGRANGIAN POINTS ONLY (if selected) # # # # #
 
     if lagPlot:
-        plt.subplot(1,numPlots,ct)
+        plt.subplot(1,int(numPlots),ct)
         plt.axis([0, Lx, 0, Ly])
         plt.title('LAGRANGIAN PTS')
         plt.xlabel('x'); plt.ylabel('y')
