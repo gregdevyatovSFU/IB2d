@@ -34,6 +34,8 @@ from please_Plot_Results import please_Plot_Results
 from please_Compute_Normal_Tangential_Forces_On_Lag_Pts import \
     please_Compute_Normal_Tangential_Forces_On_Lag_Pts
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
 
 # IF BOUSSINESQ
 try:
@@ -45,7 +47,7 @@ except ImportError:
 try:
     import write
     C_flag = True
-    print('Running with compiled C I/O library.')
+    ib2d_logger.info('Running with compiled C I/O library.')
 except:
     C_flag = False
 
@@ -57,7 +59,7 @@ try:
 except:
     vtk_lib_flag = False
     if not C_flag:
-        print('Running without optimized IO libraries (VTK or C).')
+        ib2d_logger.info('Running without optimized IO libraries (VTK or C).')
 
 ###############################################################################
 #
@@ -98,19 +100,19 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     F_x = int{ fx(s,t) delta(x - LagPts(s,t)) ds }
     F_y = int{ fy(s,t) delta(x - LagPts(s,t)) ds }'''
 
-    print('\n________________________________________________________________________________\n\n')
-    print('\n---------------->>                 IB2d                      <<----------------\n')
-    print('\n________________________________________________________________________________\n\n')
-    print('If using the code for research purposes please cite the following two papers: \n')
-    print('     [1] N.A. Battista, A.J. Baird, L.A. Miller, A mathematical model and MATLAB code for muscle-fluid-structure simulations, Integ. Comp. Biol. 55(5):901-11 (2015)\n')
-    print('     [2] N.A. Battista, W.C. Strickland, L.A. Miller, IB2d a Python and MATLAB implementation of the immersed boundary method, Bioinspir. Biomim. 12(3):036003 (2017)\n')
-    print('     [3] N.A. Battista, W.C. Strickland, A. Barrett, L.A. Miller, IB2d Reloaded: A more powerful Python and MATLAB implementation of the immersed boundary method. Math Meth Appl Sci. 1?26 (2017).')
-    print('\n________________________________________________________________________________')
-    print('\n\nNOTE: If running pyIB2d with Anaconda, please note that it will run faster with vtk installed.\n')
-    print('          To install, type the following line into your terminal: <conda install -c menpo vtk> in your terminal')
-    print('\n________________________________________________________________________________')
-    print('\n\n\n |****** Prepping Immersed Boundary Simulation ******|\n')
-    print('\n\n--> Reading input data for simulation...\n\n')
+    ib2d_logger.debug('\n________________________________________________________________________________\n\n')
+    ib2d_logger.debug('\n---------------->>                 IB2d                      <<----------------\n')
+    ib2d_logger.debug('\n________________________________________________________________________________\n\n')
+    ib2d_logger.debug('If using the code for research purposes please cite the following two papers: \n')
+    ib2d_logger.debug('     [1] N.A. Battista, A.J. Baird, L.A. Miller, A mathematical model and MATLAB code for muscle-fluid-structure simulations, Integ. Comp. Biol. 55(5):901-11 (2015)\n')
+    ib2d_logger.debug('     [2] N.A. Battista, W.C. Strickland, L.A. Miller, IB2d a Python and MATLAB implementation of the immersed boundary method, Bioinspir. Biomim. 12(3):036003 (2017)\n')
+    ib2d_logger.debug('     [3] N.A. Battista, W.C. Strickland, A. Barrett, L.A. Miller, IB2d Reloaded: A more powerful Python and MATLAB implementation of the immersed boundary method. Math Meth Appl Sci. 1?26 (2017).')
+    ib2d_logger.debug('\n________________________________________________________________________________')
+    ib2d_logger.debug('\n\nNOTE: If running pyIB2d with Anaconda, please note that it will run faster with vtk installed.\n')
+    ib2d_logger.debug('          To install, type the following line into your terminal: <conda install -c menpo vtk> in your terminal')
+    ib2d_logger.debug('\n________________________________________________________________________________')
+    ib2d_logger.debug('\n\n\n |****** Prepping Immersed Boundary Simulation ******|\n')
+    ib2d_logger.debug('\n\n--> Reading input data for simulation...\n\n')
     
     #
     # ** IBM_DRIVER INPUT DEFINITIONS ** :
@@ -253,7 +255,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     ds = Lx/(2.*Nx)             # Lagrangian Spacing
     grid_Info.append(ds)        # grid_Info[8] = ds                  
     
-    print('\n--> FIBER MODEL INCLUDES: \n')
+    ib2d_logger.info('\n--> FIBER MODEL INCLUDES: \n')
                    
                             
 
@@ -264,11 +266,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
         
     # READ IN SPRINGS (IF THERE ARE SPRINGS) #
     if springs_Yes:
-        print('  - Springs and ...')
+        ib2d_logger.info('  - Springs and ...')
         if update_Springs_Flag == 0:
-            print('                   NOT dynamically updating spring properties\n')
+            ib2d_logger.info('                   NOT dynamically updating spring properties\n')
         else:
-            print('                   dynamically updating spring properties\n')
+            ib2d_logger.info('                   dynamically updating spring properties\n')
 
         springs_info = read_Spring_Points(struct_name)
             #springs_info: col 1: starting spring pt (by lag. discretization)
@@ -284,11 +286,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN BEAMS (IF THERE ARE TORSIONAL SPRINGS aka BEAMS) #
     if beams_Yes:
-        print('  - Beams ("Torsional Springs") and ... ')
+        ib2d_logger.info('  - Beams ("Torsional Springs") and ... ')
         if update_Beams_Flag == 0:
-            print('                    NOT dynamically updating beam properties\n')
+            ib2d_logger.info('                    NOT dynamically updating beam properties\n')
         else:
-            print('                    dynamically updating beam properties\n')
+            ib2d_logger.info('                    dynamically updating beam properties\n')
 
         beams_info = read_Beam_Points(struct_name)
         #beams:      col 1: 1ST PT.
@@ -303,11 +305,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN NON-INVARIANT BEAMS (IF THERE ARE NON-INVARIANT BEAMS) #
     if nonInv_beams_Yes:
-        print('  - Beams ("Non-Invariant Beams") and ... ')
+        ib2d_logger.info('  - Beams ("Non-Invariant Beams") and ... ')
         if update_Beams_Flag == 0:
-            print('                    NOT dynamically updating beam properties\n')
+            ib2d_logger.info('                    NOT dynamically updating beam properties\n')
         else:
-            print('                    dynamically updating beam properties\n')
+            ib2d_logger.info('                    dynamically updating beam properties\n')
 
         nonInv_beams_info = read_nonInv_Beam_Points(struct_name)
         #beams:      col 1: 1ST PT.
@@ -322,11 +324,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN DAMPED SPRINGS (IF THERE ARE DAMPED SPRINGS) #
     if d_Springs_Yes:
-        print('  - Damped Springs and ...')
+        ib2d_logger.info('  - Damped Springs and ...')
         if update_D_Springs_Flag == 0:
-            print('                   NOT dynamically updating damped spring properties\n')
+            ib2d_logger.info('                   NOT dynamically updating damped spring properties\n')
         else:
-            print('                   dynamically updating spring properties\n')
+            ib2d_logger.info('                   dynamically updating spring properties\n')
 
         d_springs_info = read_Damped_Spring_Points(struct_name) 
             #springs_info: col 1: starting spring pt (by lag. discretization)
@@ -342,11 +344,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN TARGET POINTS (IF THERE ARE TARGET PTS) #
     if target_pts_Yes:
-        print('  - Target Pts. and ...')
+        ib2d_logger.info('  - Target Pts. and ...')
         if update_Target_Pts == 0:
-            print('                 NOT dynamically updating target point properties\n')
+            ib2d_logger.info('                 NOT dynamically updating target point properties\n')
         else:
-            print('                 dynamically updating target point properties\n')
+            ib2d_logger.info('                 dynamically updating target point properties\n')
         
         target_aux = read_Target_Points(struct_name)
         #target_aux: col 0: Lag Pt. ID w/ Associated Target Pt.
@@ -371,11 +373,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     
     # READ IN MASS POINTS (IF THERE ARE MASS PTS) #
     if mass_Yes:
-        print('  - Mass Pts. with ')
+        ib2d_logger.info('  - Mass Pts. with ')
         if gravity_Yes == 0:
-            print('          NO artificial gravity\n')
+            ib2d_logger.info('          NO artificial gravity\n')
         else:
-            print('          artificial gravity\n')
+            ib2d_logger.info('          artificial gravity\n')
 
         mass_aux = read_Mass_Points(struct_name)
         #target_aux: col 0: Lag Pt. ID w/ Associated Mass Pt.
@@ -424,7 +426,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     
     # READ IN POROUS MEDIA INFO (IF THERE IS POROSITY) #
     if porous_Yes:
-        print('  - Porous Points\n')
+        ib2d_logger.info('  - Porous Points\n')
         porous_aux = read_Porous_Points(struct_name)
         #porous_aux: col 1: Lag Pt. ID w/ Associated Porous Pt.
         #            col 2: Porosity coefficient
@@ -447,7 +449,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN PORO-ELASTIC MEDIA INFO (IF THERE IS PORO-ELASTICITY) #
     if ( poroelastic_Yes ):
-        print('  -Poroelastic media\n')
+        ib2d_logger.info('  -Poroelastic media\n')
         poroelastic_info = read_PoroElastic_Points(struct_name)
         F_Poro = np.zeros( ( len(poroelastic_info), 2) )   # Initialization
         #poroelastic_info: col 1: Lag Pt. ID w/ Associated Porous Pt.
@@ -461,7 +463,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN MUSCLES (IF THERE ARE MUSCLES) #
     if muscles_Yes:
-        print('  - MUSCLE MODEL (Force-Velocity / Length-Tension Model)\n')
+        ib2d_logger.info('  - MUSCLE MODEL (Force-Velocity / Length-Tension Model)\n')
         muscles_info = read_Muscle_Points(struct_name)
             #         muscles: col 1: MASTER NODE (by lag. discretization)
             #         col 2: SLAVE NODE (by lag. discretization)
@@ -478,7 +480,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     
     # READ IN MUSCLES (IF THERE ARE MUSCLES) #
     if hill_3_muscles_Yes:
-        print('  - MUSCLE MODEL (3 Element Hill Model)\n')
+        ib2d_logger.info('  - MUSCLE MODEL (3 Element Hill Model)\n')
         muscles3_info = read_Hill_3Muscle_Points(struct_name)
             #         muscles: col 1: MASTER NODE (by lag. discretization)
             #         col 2: SLAVE NODE (by lag. discretization)
@@ -494,7 +496,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN USER-DEFINED FORCE MODEL PARAMETERS (IF THERE IS A USER-DEFINED FORCE) #
     if general_force_Yes:
-        print('  - GENERAL FORCE MODEL (user-defined force term)\n')
+        ib2d_logger.info('  - GENERAL FORCE MODEL (user-defined force term)\n')
         gen_force_info = read_General_Forcing_Function(struct_name)
         #
         #           
@@ -525,14 +527,14 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     #
     # BACKGROUND FLOW ITEMS
     #
-    print('\n\n--> Background Flow Items\n')
+    ib2d_logger.info('\n\n--> Background Flow Items\n')
     if ( tracers_Yes == 0 ) and (concentration_Yes == 0):
-        print('      (No tracers nor other passive scalars immersed in fluid)\n\n')
+        ib2d_logger.info('      (No tracers nor other passive scalars immersed in fluid)\n\n')
 
 
     # READ IN TRACERS (IF THERE ARE TRACERS) #
     if tracers_Yes:
-        print('  -Tracer Particles included\n')
+        ib2d_logger.info('  -Tracer Particles included\n')
         nulvar,xT,yT = read_Tracer_Points(struct_name)
         tracers = np.zeros((xT.size,4))
         tracers[0,0] = 1
@@ -547,7 +549,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN CONCENTRATION (IF THERE IS A BACKGROUND CONCENTRATION) #
     if concentration_Yes:
-        print('  -Background concentration included\n')
+        ib2d_logger.info('  -Background concentration included\n')
         C,kDiffusion = read_In_Concentration_Info(struct_name)
             #C:           Initial background concentration
             #kDiffusion:  Diffusion constant for Advection-Diffusion
@@ -558,7 +560,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # READ IN BRINKMAN TERM (IF THERE IS A BRINKMAN TERM) #
     if brinkman_Yes:
-        print('  -Brinkman term included\n')
+        ib2d_logger.info('  -Brinkman term included\n')
         Brink,kBrink = read_In_Brinkman_Info(struct_name)
             #Brink:   Initial brinkman permeability matrix
             #kBrink:  Permeability for brinkman model
@@ -568,19 +570,19 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     # CONSTRUCT BOUSSINESQ INFORMATION (IF USING BOUSSINESQ) #
     if boussinesq_Yes:
-        print('  -Boussinesq Approximation included\n')
-        print('     -> NEED: 1. gravity flag w/ gravity components \n')
-        print('              2. background concentration \n')
+        ib2d_logger.info('  -Boussinesq Approximation included\n')
+        ib2d_logger.info('     -> NEED: 1. gravity flag w/ gravity components \n')
+        ib2d_logger.info('              2. background concentration \n')
 
         if exp_Coeff == 0:
-            print('     -> exp_Coeff set to 1.0 by default, was assigned 0 in input2d <-\n')
+            ib2d_logger.info('     -> exp_Coeff set to 1.0 by default, was assigned 0 in input2d <-\n')
             exp_Coeff = 1.0
 
         #if gravity_Info == 0:
-        #    print('\n\n\n READ THE ERROR MESSAGE -> YOU MUST FLAG GRAVITY IN INPUT FILE FOR BOUSSINESQ! :) \n\n\n')
+        #    ib2d_logger.info('\n\n\n READ THE ERROR MESSAGE -> YOU MUST FLAG GRAVITY IN INPUT FILE FOR BOUSSINESQ! :) \n\n\n')
         #    error('YOU MUST FLAG GRAVITY IN INPUT FILE FOR BOUSSINESQ! :)')
         #elif concentration_Yes == 0:
-        #    print('\n\n\n READ THE ERROR MESSAGE -> YOU MUST HAVE BACKGROUND CONCENTRATION FOR BOUSSINESQ! :) \n\n\n')
+        #    ib2d_logger.info('\n\n\n READ THE ERROR MESSAGE -> YOU MUST HAVE BACKGROUND CONCENTRATION FOR BOUSSINESQ! :) \n\n\n')
         #    error('YOU MUST FLAG CONCENTRATION IN INPUT FILE FOR BOUSSINESQ! :)')
 
         # Forms Boussinesq forcing terms, e.g., (exp_Coeff)*gVector for Momentum Eq.
@@ -601,7 +603,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     mVelocity = np.zeros((mass_info.shape[0],2))    # mass-Pt velocity 
 
     if arb_ext_force_Yes:
-        print('  -Artificial External Forcing Onto Fluid Grid\n')
+        ib2d_logger.info('  -Artificial External Forcing Onto Fluid Grid\n')
         firstExtForce = 1       # initialize external forcing
         indsExtForce = 0        # initialize for external forcing computation
     
@@ -668,10 +670,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
                     Nx,Ny,
                     lagPts, 
                     springs_Yes, connectsMat, tracers,concentration_Yes, C,
-                    Fxh.T, Fyh.T, F_Lag)
+                    Fxh, Fyh, F_Lag,
+                    current_time)
     
-    print('\n |****** Begin IMMERSED BOUNDARY SIMULATION! ******| \n\n')
-    print('Current Time(s): {0}\n'.format(current_time))
+    ib2d_logger.info('\n |****** Begin IMMERSED BOUNDARY SIMULATION! ******| \n\n')
+    ib2d_logger.info('Current Time(s): {0}\n'.format(current_time))
     ctsave += 1
     
     #-----------------------------------------------------------------------------------------------
@@ -849,10 +852,10 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
             #Print .vtk files!
             lagPts = np.vstack((xLag, yLag, np.zeros(xLag.size))).T
             print_vtk_files(Output_Params,ctsave,vort,uMag.T,p.T,U.T,V.T,Lx,Ly,Nx,Ny,\
-                lagPts,springs_Yes,connectsMat,tracers,concentration_Yes,C,Fxh.T,Fyh.T,F_Lag)
+                lagPts,springs_Yes,connectsMat,tracers,concentration_Yes,C,Fxh.T,Fyh.T,F_Lag, current_time)
             
             #Print Current Time
-            print('Current Time(s): {0:6.6f}\n'.format(current_time))
+            ib2d_logger.info('Current Time(s): {0:6.6f}\n'.format(current_time))
             
             #Update print counter for filename index
             ctsave+=1
@@ -997,7 +1000,7 @@ def read_Spring_Points(struct_name):
         springs = np.genfromtxt(filename,skip_header=1,
             missing_values=['-NaN', '-nan', 'N/A', 'NA', 'NULL', 'NaN', 'nan'],filling_values=1)
     except ValueError:
-        print('Failed to load spring data from {}.\n'.format(filename)+
+        ib2d_logger.info('Failed to load spring data from {}.\n'.format(filename)+
               'Check that all rows (after the first) have the same number of columns\n'+
               'N/A, NA, NULL, NaN, and nan can be used to denote missing values if\n'+
               'linear and non-linear springs are mixed (these entries will be replaced with a 1).')

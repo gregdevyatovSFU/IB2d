@@ -20,6 +20,8 @@
  There are a number of built in Examples, mostly used for teaching purposes. 
 
 ----------------------------------------------------------------------------------------------------'''
+import logging
+ib2d_logger = logging.getLogger("ib2d")
 
 import numpy as np
 from numpy import pi as PI
@@ -32,9 +34,9 @@ try:
     fft_mat = None
     ifft_mat = None
     FFTW = True
-    print('Running with pyFFTW.')
+    ib2d_logger.debug('Running with pyFFTW.')
 except:
-    print('Running without pyFFTW library.')
+    ib2d_logger.debug('Running without pyFFTW library.')
     FFTW = False
 from Supp import D, DD
 

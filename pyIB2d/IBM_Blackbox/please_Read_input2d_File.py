@@ -26,6 +26,9 @@ from numpy import pi as PI
 import sys
 import os
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
+
 ################################################################################
 #
 # FUNCTION: Removes comments from input file and creates temporary input file
@@ -187,20 +190,20 @@ def readNoBrace(FID):
 def please_Test_Reading(parameters):
 
     # PRINTS INPUT GROUP CATEGORY NAMES
-    print(parameters[0][0][:]) # Prints 'Fluid Parameters'
-    print(parameters[0][1][:]) # Prints 'Temporal Information'
-    print(parameters[0][2][:]) # Prints 'Grid Parameters'
-    print(parameters[0][:][:]) # Prints all category names
+    ib2d_logger.info(parameters[0][0][:]) # Prints 'Fluid Parameters'
+    ib2d_logger.info(parameters[0][1][:]) # Prints 'Temporal Information'
+    ib2d_logger.info(parameters[0][2][:]) # Prints 'Grid Parameters'
+    ib2d_logger.info(parameters[0][:][:]) # Prints all category names
 
     # PRINTS PARAMETER NAME
-    print(parameters[1][0][:]) # Prints ['mu',rho']
-    print(parameters[1][0][0]) # Prints 'mu'
-    print(parameters[1][0][1]) # Prints 'rho'
+    ib2d_logger.info(parameters[1][0][:]) # Prints ['mu',rho']
+    ib2d_logger.info(parameters[1][0][0]) # Prints 'mu'
+    ib2d_logger.info(parameters[1][0][1]) # Prints 'rho'
 
     # PRINTS PARAMETER VALUE
-    print(parameters[1][1][:]) # Prints ['mu',rho'] = [0.01, 1.0] <-only prints numbers
-    print(parameters[1][1][0]) # Prints 0.01
-    print(parameters[1][1][1]) # Prints 1.0
+    ib2d_logger.info(parameters[1][1][:]) # Prints ['mu',rho'] = [0.01, 1.0] <-only prints numbers
+    ib2d_logger.info(parameters[1][1][0]) # Prints 0.01
+    ib2d_logger.info(parameters[1][1][1]) # Prints 1.0
 
     return 
 

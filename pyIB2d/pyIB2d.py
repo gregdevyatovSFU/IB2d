@@ -51,8 +51,13 @@ import numpy as np
 import sys
 from tkinter.filedialog import askopenfilename
 # Path Reference to where Driving code is found #
+
+import logging
+ib2d_logger = logging.getLogger("ib2d")
+
 sys.path.append('IBM_Blackbox')
 import IBM_Driver as Driver
+
 
 def give_Me_input2d_Parameters(fpath):
     ''' Function to read in input files from "input2d"
@@ -164,6 +169,8 @@ def main2d(fpath):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+
     parser = argparse.ArgumentParser(description = 'Frontend for pyIB2d.\n'
                                     'Use file-select dialog or terminal arg '
                                     'to point to simulation directory.')
@@ -175,7 +182,7 @@ if __name__ == '__main__':
     elif args.fdiag:
         inname = askopenfilename()
     else:
-        print('Invalid use of flags. Use the -h option for help.')
+        ib2d_logger.info('Invalid use of flags. Use the -h option for help.')
         sys.exit()
     fpath = os.path.split(inname)
     main2d(fpath)

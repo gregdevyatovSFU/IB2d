@@ -32,6 +32,9 @@ plt.rcParams['image.cmap'] = 'viridis'
 from math import sqrt
 import warnings
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
+
 ###########################################################################
 #
 # FUNCTION: Plots the Lagrangian structure with:

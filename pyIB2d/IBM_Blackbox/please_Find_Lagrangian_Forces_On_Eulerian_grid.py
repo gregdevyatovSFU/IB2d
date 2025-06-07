@@ -26,6 +26,8 @@ import numpy as np
 from Supp import give_1D_NonZero_Delta_Indices
 from Supp import give_Eulerian_Lagrangian_Distance, give_Delta_Kernel
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
  
 ################################################################################
 #

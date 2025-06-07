@@ -24,6 +24,9 @@
 import numpy as np
 import math
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
+
 ##################################################################################
 #
 # FUNCTION: computes normal and tangential forces on Lagrangian Boundary
