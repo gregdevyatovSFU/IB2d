@@ -1443,7 +1443,7 @@ def give_Me_Lag_Pt_Connects(ds,xLag,yLag,Nx,springs_Yes,springs_info):
 ##############################################################################
 
 def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,springs_Yes,\
-    connectsMat,tracers,concentration_Yes,C,fXGrid,fYGrid,F_Lag):
+    connectsMat,tracers,concentration_Yes,C,fXGrid,fYGrid,F_Lag, current_time):
     ''' Gives appropriate string number for filename in printing the .vtk files'''
 
 
@@ -1537,13 +1537,55 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
         velocityName = 'u.'+strNUM+'.vtk'
         savevtk_vector(U, V, velocityName, 'u',dx,dy)
     
-    from pathlib import Path
-    field_file = Path().cwd() / f"fields.{strNUM}"
-    lag_file = Path().cwd() / f"lag_points.{strNUM}"
-    np.savez(field_file, u=U, v=V, f_x=fXGrid, f_y=fYGrid)
-    np.savez(lag_file, lag_points=lagPts, conns=connectsMat)
     #Get out of viz_IB2d folder
     os.chdir('..')
+
+    from pathlib import Path
+    import xarray as xr
+    field_file = Path().cwd() / f"fields.{strNUM}.nc"
+    lag_file = Path().cwd() / f"lag_points.{strNUM}.nc"
+
+    x_coord = np.arange(0., Lx, step=dx)
+    y_coord = np.arange(0., Ly, step=dy)
+
+    ds_e = xr.Dataset(
+        data_vars={
+            'u': (('x', 'y',), U),
+            'v': (('x', 'y',), V),
+            'f_y': (('x', 'y',), fXGrid),
+            'f_x': (('x', 'y',), fYGrid),
+        },
+        coords={
+            'x': x_coord,
+            'y': y_coord,
+            't': current_time,
+        },
+        attrs={}
+    )
+    ds_e.to_netcdf(field_file)
+
+    F_Tan_Mag,F_Normal_Mag = please_Compute_Normal_Tangential_Forces_On_Lag_Pts(lagPts,F_Lag)
+    fLagMag = np.sqrt( F_Lag[:,0]*F_Lag[:,0] + F_Lag[:,1]*F_Lag[:,1] )
+
+    s_coord = np.arange(0, lagPts.shape[0])
+    
+    ds_l = xr.Dataset(
+        data_vars={
+            'X':      (('s', ), lagPts[:, 0]),
+            'Y':      (('s', ), lagPts[:, 1]),
+            'f_x':    (('s', ), F_Lag[:,0]),
+            'f_y':    (('s', ), F_Lag[:,1]),
+            'f_mag':  (('s', ), fLagMag),
+            'f_norm': (('s', ), F_Normal_Mag[:, 0]),
+            'f_tan':  (('s', ), F_Tan_Mag[:, 0]),
+        },
+        coords={
+            's': s_coord,
+            't': current_time,
+        },
+        attrs={}
+    )
+    ds_l.to_netcdf(lag_file)
 
 
     #
@@ -1603,7 +1645,7 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
             # Get out of hier_IB2d_data folder
             os.chdir('..') 
     
-    
+
 ##############################################################################
 #
 # FUNCTION: gives appropriate string number for filename in printing the
