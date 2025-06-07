@@ -26,6 +26,8 @@ import numpy as np
 import sys
 from collections import OrderedDict
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
 ##################################################################################
 #
 # FUNCTION: initializes FLUID parameters for IBM_Driver file
@@ -50,13 +52,13 @@ def please_Initialize_Fluid_Inputs(Fluid_Input):
 
     except ValueError:
 
-        print('\n\n * FLUID Parameters Improperly Declared in input2d file * \n\n')
-        print(' * Check input2d file format: \n')
-        print('      Fluid_Parameters { \n')
-        print('      mu =  <dynamic viscosity (N*s/m^2)>\n')
-        print('      rho = <density (kg/m^3)>\n')
-        print('      }\n')
-        print('ERROR ERROR ERROR\n\n')
+        ib2d_logger.info('\n\n * FLUID Parameters Improperly Declared in input2d file * \n\n')
+        ib2d_logger.info(' * Check input2d file format: \n')
+        ib2d_logger.info('      Fluid_Parameters { \n')
+        ib2d_logger.info('      mu =  <dynamic viscosity (N*s/m^2)>\n')
+        ib2d_logger.info('      rho = <density (kg/m^3)>\n')
+        ib2d_logger.info('      }\n')
+        ib2d_logger.info('ERROR ERROR ERROR\n\n')
 
         sys.exit(0)
     
@@ -98,16 +100,16 @@ def please_Initialize_Grid_Inputs(Grid_Input):
 
     except ValueError:      
 
-        print('\n\n * GRID Parameters Improperly Declared in input2d file * \n\n')
-        print(' * Check input2d file format: \n')
-        print('      Grid_Parameters { \n')
-        print('      Nx = <# of Eulerian Grid Pts. in x-Direction (MUST BE EVEN!)>\n')
-        print('      Ny = <# of Eulerian Grid Pts. in y-Direction (MUST BE EVEN!)>\n')
-        print('      Lx = <Length of Eulerian Grid in x-Direction (m)>\n')
-        print('      Ly = <Length of Eulerian Grid in y-Direction (m)>\n')
-        print('      supp =  <Choose dirac-delta support (KEEP IT EVEN! *only set up for supp = 4*)>\n')
-        print('      }\n')
-        print('ERROR ERROR ERROR\n\n')
+        ib2d_logger.info('\n\n * GRID Parameters Improperly Declared in input2d file * \n\n')
+        ib2d_logger.info(' * Check input2d file format: \n')
+        ib2d_logger.info('      Grid_Parameters { \n')
+        ib2d_logger.info('      Nx = <# of Eulerian Grid Pts. in x-Direction (MUST BE EVEN!)>\n')
+        ib2d_logger.info('      Ny = <# of Eulerian Grid Pts. in y-Direction (MUST BE EVEN!)>\n')
+        ib2d_logger.info('      Lx = <Length of Eulerian Grid in x-Direction (m)>\n')
+        ib2d_logger.info('      Ly = <Length of Eulerian Grid in y-Direction (m)>\n')
+        ib2d_logger.info('      supp =  <Choose dirac-delta support (KEEP IT EVEN! *only set up for supp = 4*)>\n')
+        ib2d_logger.info('      }\n')
+        ib2d_logger.info('ERROR ERROR ERROR\n\n')
         sys.exit(0)
     
     return Grid_Params   
@@ -137,13 +139,13 @@ def please_Initialize_Time_Inputs(Time_Input):
 
     except ValueError:
 
-        print('\n\n * TEMPORAL Parameters Improperly Declared in input2d file * \n\n')
-        print(' * Check input2d file format: \n')
-        print('      Temporal_Information { \n')
-        print('      Tfinal =  <final time of simulation>\n')
-        print('      dt = <time-step value>\n')
-        print('      }\n')
-        print('ERROR ERROR ERROR\n\n')
+        ib2d_logger.info('\n\n * TEMPORAL Parameters Improperly Declared in input2d file * \n\n')
+        ib2d_logger.info(' * Check input2d file format: \n')
+        ib2d_logger.info('      Temporal_Information { \n')
+        ib2d_logger.info('      Tfinal =  <final time of simulation>\n')
+        ib2d_logger.info('      dt = <time-step value>\n')
+        ib2d_logger.info('      }\n')
+        ib2d_logger.info('ERROR ERROR ERROR\n\n')
 
         sys.exit(0)
     
@@ -201,19 +203,19 @@ def please_Initialize_Output_Inputs(Output_Input):
 
     except ValueError:
         
-        print('\n\nERROR ERROR ERROR')
-        print('\n\n * OUTPUT Parameters Improperly Declared in input2d file * \n\n')
-        print(' * Check input2d file format: \n')
-        print('      Output_Info { \n')
-        print('      print_dump =  <# of time-steps btwn saving data>\n')
-        print('      plot_Matlab = <0 or 1>\n')
-        print('      plot_LagPts = <0 or 1>\n')
-        print('      plot_Velocity = <0 or 1>\n')
-        print('      plot_Vorticity = <0 or 1>\n')
-        print('      plot_MagVelocity = <0 or 1>\n')
-        print('      plot_Pressure = <0 or 1>\n')
-        print('      }\n')
-        print('ERROR ERROR ERROR\n\n')
+        ib2d_logger.info('\n\nERROR ERROR ERROR')
+        ib2d_logger.info('\n\n * OUTPUT Parameters Improperly Declared in input2d file * \n\n')
+        ib2d_logger.info(' * Check input2d file format: \n')
+        ib2d_logger.info('      Output_Info { \n')
+        ib2d_logger.info('      print_dump =  <# of time-steps btwn saving data>\n')
+        ib2d_logger.info('      plot_Matlab = <0 or 1>\n')
+        ib2d_logger.info('      plot_LagPts = <0 or 1>\n')
+        ib2d_logger.info('      plot_Velocity = <0 or 1>\n')
+        ib2d_logger.info('      plot_Vorticity = <0 or 1>\n')
+        ib2d_logger.info('      plot_MagVelocity = <0 or 1>\n')
+        ib2d_logger.info('      plot_Pressure = <0 or 1>\n')
+        ib2d_logger.info('      }\n')
+        ib2d_logger.info('ERROR ERROR ERROR\n\n')
         sys.exit(0)
     
     return Output_Params
@@ -280,38 +282,38 @@ def please_Initialize_Lag_Structure_Inputs(Lag_Struct_Input):
       
     except ValueError:
         
-        print('\n\nERROR ERROR ERROR')
-        print('\n\n * LAGRANGIAN STRUCTURE Selections Improperly Declared in input2d file * \n\n')
-        print(' * Check input2d file format: \n')
-        print('      Lag_Structure_Info { \n')
-        print('      springs =  <0 or 1>\n')
-        print('      update_springs = <0 or 1>\n')
-        print('      target_pts = <0 or 1>\n')
-        print('      update_target = <0 or 1>\n')
-        print('      beams = <0 or 1>\n')
-        print('      update_beams = <0 or 1>\n')
-        print('      nonInvariant_beams = <0 or 1>\n')
-        print('      update_nonInv_beams = <0 or 1>\n')
-        print('      FV_LT_muscle =  <0 or 1>\n')
-        print('      3_element_muscle = <0 or 1>\n')
-        print('      arb_ext_force = <0 or 1>\n')
-        print('      tracers = <0 or 1>\n')
-        print('      mass_pts = <0 or 1>\n')
-        print('      gravity = <0 or 1>\n')
-        print('      x_gravity_vec_comp = <# (x-GRAVITY VECTOR COMPONENT) >\n')
-        print('      y_gravity_vec_comp = <# (y-GRAVITY VECTOR COMPONENT) >\n')
-        print('      porous_media =  <0 or 1>\n')
-        print('      concentration = <0 or 1>\n')
-        print('      electro_phys = <0 or 1>\n')
-        print('      damped_springs = <0 or 1>\n')
-        print('      update_damp_springs = <0 or 1>\n')
-        print('      boussinesq = <0 or 1>\n')
-        print('      expansion_coeff = <# (EXPANSION COEFFICIENT FOR BOUSSINESQ) >\n')
-        print('      user_force_model = <0 or 1>\n')
-        print('      poroelastic = <0 or 1>\n')
-        print('      brinkman = <0 or 1>\n')
-        print('      }\n')
-        print('ERROR ERROR ERROR\n\n')
+        ib2d_logger.info('\n\nERROR ERROR ERROR')
+        ib2d_logger.info('\n\n * LAGRANGIAN STRUCTURE Selections Improperly Declared in input2d file * \n\n')
+        ib2d_logger.info(' * Check input2d file format: \n')
+        ib2d_logger.info('      Lag_Structure_Info { \n')
+        ib2d_logger.info('      springs =  <0 or 1>\n')
+        ib2d_logger.info('      update_springs = <0 or 1>\n')
+        ib2d_logger.info('      target_pts = <0 or 1>\n')
+        ib2d_logger.info('      update_target = <0 or 1>\n')
+        ib2d_logger.info('      beams = <0 or 1>\n')
+        ib2d_logger.info('      update_beams = <0 or 1>\n')
+        ib2d_logger.info('      nonInvariant_beams = <0 or 1>\n')
+        ib2d_logger.info('      update_nonInv_beams = <0 or 1>\n')
+        ib2d_logger.info('      FV_LT_muscle =  <0 or 1>\n')
+        ib2d_logger.info('      3_element_muscle = <0 or 1>\n')
+        ib2d_logger.info('      arb_ext_force = <0 or 1>\n')
+        ib2d_logger.info('      tracers = <0 or 1>\n')
+        ib2d_logger.info('      mass_pts = <0 or 1>\n')
+        ib2d_logger.info('      gravity = <0 or 1>\n')
+        ib2d_logger.info('      x_gravity_vec_comp = <# (x-GRAVITY VECTOR COMPONENT) >\n')
+        ib2d_logger.info('      y_gravity_vec_comp = <# (y-GRAVITY VECTOR COMPONENT) >\n')
+        ib2d_logger.info('      porous_media =  <0 or 1>\n')
+        ib2d_logger.info('      concentration = <0 or 1>\n')
+        ib2d_logger.info('      electro_phys = <0 or 1>\n')
+        ib2d_logger.info('      damped_springs = <0 or 1>\n')
+        ib2d_logger.info('      update_damp_springs = <0 or 1>\n')
+        ib2d_logger.info('      boussinesq = <0 or 1>\n')
+        ib2d_logger.info('      expansion_coeff = <# (EXPANSION COEFFICIENT FOR BOUSSINESQ) >\n')
+        ib2d_logger.info('      user_force_model = <0 or 1>\n')
+        ib2d_logger.info('      poroelastic = <0 or 1>\n')
+        ib2d_logger.info('      brinkman = <0 or 1>\n')
+        ib2d_logger.info('      }\n')
+        ib2d_logger.info('ERROR ERROR ERROR\n\n')
         sys.exit(0)
     
     return Lag_Struct_Params
@@ -334,12 +336,12 @@ def please_Initialize_Lag_Name_Inputs(Lag_Name_Input):
     
     except ValueError:
 
-        print('\n\n * LAGRANGIAN NAME Parameter Improperly Declared in input2d file * \n\n')
-        print(' * Check input2d file format: \n')
-        print('      Lag_Name { \n')
-        print('      string_name = <"Lagrangian_Structure_Name" (in quotation marks)>\n')
-        print('      }\n')
-        print('ERROR ERROR ERROR\n\n')
+        ib2d_logger.info('\n\n * LAGRANGIAN NAME Parameter Improperly Declared in input2d file * \n\n')
+        ib2d_logger.info(' * Check input2d file format: \n')
+        ib2d_logger.info('      Lag_Name { \n')
+        ib2d_logger.info('      string_name = <"Lagrangian_Structure_Name" (in quotation marks)>\n')
+        ib2d_logger.info('      }\n')
+        ib2d_logger.info('ERROR ERROR ERROR\n\n')
 
         sys.exit(0)
     
@@ -385,12 +387,12 @@ def please_Initialize_Simulation():
     #
     # TESTING READ INPUTS
     #
-    #print(Fluid_Input)
-    #print(Grid_Input)
-    #print(Time_Input)
-    #print(Lag_Struct_Input)
-    #print(Output_Info)
-    #print(Lag_Name_Input)
+    #ib2d_logger.info(Fluid_Input)
+    #ib2d_logger.info(Grid_Input)
+    #ib2d_logger.info(Time_Input)
+    #ib2d_logger.info(Lag_Struct_Input)
+    #ib2d_logger.info(Output_Info)
+    #ib2d_logger.info(Lag_Name_Input)
 
 
     #
@@ -406,12 +408,12 @@ def please_Initialize_Simulation():
     #
     # TESTING READ INPUTS STORAGE VALUES
     #
-    #print(Fluid_Params)
-    #print(Grid_Params)
-    #print(Time_Params)
-    #print(Output_Params)
-    #print(Lag_Struct_Params)
-    #print(Lag_Name_Params)
+    #ib2d_logger.info(Fluid_Params)
+    #ib2d_logger.info(Grid_Params)
+    #ib2d_logger.info(Time_Params)
+    #ib2d_logger.info(Output_Params)
+    #ib2d_logger.info(Lag_Struct_Params)
+    #ib2d_logger.info(Lag_Name_Params)
 
     return Fluid_Params, Grid_Params, Time_Params, Lag_Struct_Params, Output_Params, Lag_Name_Params
 

@@ -24,6 +24,9 @@
 import numpy as np
 from math import sqrt
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
+
 ################################################################################
 #
 # FUNCTION: computes Porous Slip Velocity based on Darcy's Law,

@@ -39,7 +39,10 @@
 import numpy as np
 from math import sqrt
 from numba import jit
-    
+
+import logging
+ib2d_logger = logging.getLogger("ib2d")
+  
 ################################################################################
 #
 # FUNCTION: Moves Lagrangian Point Positions by doing the integral,
@@ -460,8 +463,8 @@ def D(u,dz,string):
         
     else:
         
-        print('\n\n\n ERROR IN FUNCTION D FOR COMPUTING 1ST DERIVATIVE\n')
-        print('Need to specify which desired derivative, x or y.\n\n\n')
+        ib2d_logger.warning('\n\n\n ERROR IN FUNCTION D FOR COMPUTING 1ST DERIVATIVE\n')
+        ib2d_logger.warning('Need to specify which desired derivative, x or y.\n\n\n')
            
     return u_z
 
@@ -511,8 +514,8 @@ def DD(u,dz,string):
 
     else:
         
-        print('\n\n\n ERROR IN FUNCTION DD FOR COMPUTING 2ND DERIVATIVE\n')
-        print('Need to specify which desired derivative, x or y.\n\n\n')
+        ib2d_logger.warning('\n\n\n ERROR IN FUNCTION DD FOR COMPUTING 2ND DERIVATIVE\n')
+        ib2d_logger.warning('Need to specify which desired derivative, x or y.\n\n\n')
         
     return u_zz
 
@@ -662,8 +665,8 @@ def give_Necessary_Derivative(C,dz,uZ,string):
 
     else:
 
-        print('\n\n\n ERROR IN def D FOR COMPUTING 1ST DERIVATIVE\n')
-        print('Need to specify which desired derivative, x or y.\n\n\n') 
+        ib2d_logger.warning('\n\n\n ERROR IN def D FOR COMPUTING 1ST DERIVATIVE\n')
+        ib2d_logger.warning('Need to specify which desired derivative, x or y.\n\n\n') 
 
     
     return C_z

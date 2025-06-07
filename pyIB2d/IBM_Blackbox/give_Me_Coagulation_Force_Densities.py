@@ -25,6 +25,8 @@
 
 import numpy as np
 
+import logging
+ib2d_logger = logging.getLogger("ib2d")
 ################################################################################################################
 #
 # FUNCTION : function that computes the Lagrangian COAGULATION Force Densities
