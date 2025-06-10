@@ -68,7 +68,12 @@ except:
 #
 ###############################################################################
 
-def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,Lag_Name_Params):
+
+from extra_interface import updated_path, legacy_path, ExtraParams
+feat_path = legacy_path
+
+def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,Lag_Name_Params,
+         extra_params: ExtraParams = None):
 
     ''' 2D IMMERSED BOUNDARY SOLVER ON RECTANGULAR DOMAIN w/ PERIODIC BOUNDARIES
 
@@ -524,6 +529,38 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
         gravity_Info = np.zeros((1,1))
 
 
+    update_Springs                = None
+    update_Target_Point_Positions = None
+    update_Beams                  = None
+    update_nonInv_Beams           = None
+    update_Damped_Springs         = None
+    
+    if not feat_path.setup.update_funcs:
+        if update_Springs_Flag and springs_Yes:
+            #This function is application specific, located with main2d
+            from update_Springs import update_Springs
+        
+        if update_Target_Pts and target_pts_Yes:
+            #This function is application specific, located with main2d
+            from update_Target_Point_Positions import update_Target_Point_Positions
+        
+        if update_Beams_Flag and beams_Yes:
+            from update_Beams import update_Beams
+            #This function is application specific, located with main2d
+
+        if update_nonInv_Beams_Flag and nonInv_beams_Yes:
+            from update_nonInv_Beams import update_nonInv_Beams
+            #This function is application specific, located with main2d
+        
+        if update_D_Springs_Flag and d_Springs_Yes:
+            from update_Damped_Springs import update_Damped_Springs
+            #This function is application specific, located with main2d
+    else:
+        update_Springs                = extra_params.update_funcs.update_springs_func
+        update_Target_Point_Positions = extra_params.update_funcs.update_target_point_positions_func
+        update_Beams                  = extra_params.update_funcs.update_beams_func
+        update_nonInv_Beams           = extra_params.update_funcs.update_noninv_beams_func
+        update_Damped_Springs         = extra_params.update_funcs.update_damped_springs_func
     #
     # BACKGROUND FLOW ITEMS
     #
@@ -701,30 +738,20 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
         if mass_Yes:
             mass_info, massLagsOld = please_Move_Massive_Boundary(dt/2,\
             mass_info,mVelocity)
-           
-        if update_Springs_Flag and springs_Yes:
-            #This function is application specific, located with main2d
-            from update_Springs import update_Springs
+
+        if update_Springs is not None:
             springs_info = update_Springs(dt,current_time,xLag,yLag,springs_info)
-            
-        if update_Target_Pts and target_pts_Yes:
-            #This function is application specific, located with main2d
-            from update_Target_Point_Positions import update_Target_Point_Positions
+        
+        if update_Target_Point_Positions is not None:
             target_info = update_Target_Point_Positions(dt,current_time,target_info)
-            
-        if update_Beams_Flag and beams_Yes:
-            from update_Beams import update_Beams
-            #This function is application specific, located with main2d
+        
+        if update_Beams is not None:
             beams_info = update_Beams(dt,current_time,beams_info)
-
-        if update_nonInv_Beams_Flag and nonInv_beams_Yes:
-            from update_nonInv_Beams import update_nonInv_Beams
-            #This function is application specific, located with main2d
+        
+        if update_nonInv_Beams is not None:
             nonInv_beams_info = update_nonInv_Beams(dt,current_time,beams_info)    
-
-        if update_D_Springs_Flag and d_Springs_Yes:
-            from update_Damped_Springs import update_Damped_Springs
-            #This function is application specific, located with main2d
+        
+        if update_Damped_Springs is not None:
             d_springs_info = update_Damped_Springs(dt,current_time,d_springs_info)    
         
 
