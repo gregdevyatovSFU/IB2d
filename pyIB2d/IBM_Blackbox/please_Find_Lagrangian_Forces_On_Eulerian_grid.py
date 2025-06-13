@@ -318,7 +318,8 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
     Fx = ( ( fx*ds ) * delta_Y ) @ delta_X
     Fy = ( ( fy*ds ) * delta_Y ) @ delta_X
 
-    return (Fx, Fy, F_Mass, F_Lag, F_Poro)
+    # TODO: look into this transpose again
+    return (Fx.T, Fy.T, F_Mass, F_Lag, F_Poro)
     
     
     

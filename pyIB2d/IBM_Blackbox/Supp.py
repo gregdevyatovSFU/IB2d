@@ -155,8 +155,8 @@ def give_Me_Perturbed_Distance(u,v,dx,dy,delta_X,delta_Y,xInds,yInds):
 
     # Compute integrand 'stencil' of velocity x delta for each Lagrangian Pt!
     # Fancy indexing allows us to do this directly
-    mat_X = u[yInds,xInds]*delta_X*delta_Y
-    mat_Y = v[yInds,xInds]*delta_X*delta_Y
+    mat_X = u[xInds, yInds]*delta_X*delta_Y
+    mat_Y = v[xInds, yInds]*delta_X*delta_Y
 
             
     # Approximate Integral of Velocity x Delta for each Lagrangian Pt!

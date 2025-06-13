@@ -70,7 +70,7 @@ except:
 
 
 from extra_interface import updated_path, legacy_path, ExtraParams
-feat_path = legacy_path
+feat_path = updated_path
 
 def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,Lag_Name_Params,
          extra_params: ExtraParams = None):
@@ -239,8 +239,8 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     #     --> MATLAB SYNTAX: [X,Y] = meshgrid(0:dx:Lx-dx,0:dy:Ly-dy)
     #     --> MATLAB SYNTAX: [idX,idY] = meshgrid(0:Nx-1,0:Ny-1) 
     #---------------------------------------------------------------------
-    X,Y = np.meshgrid(x,y)    
-    idX,idY = np.meshgrid(np.arange(0,Nx,1),np.arange(0,Ny,1))
+    X, Y = np.meshgrid(x, y, indexing='ij')    
+    idX, idY = np.meshgrid(np.arange(0, Nx, 1), np.arange(0, Ny, 1), indexing='ij')
     SIN_IDX = np.sin(2*np.pi*idX/Nx)
     SIN_IDY = np.sin(2*np.pi*idY/Ny) 
     A_hat = 1 + 2*mu*dt/rho*( (np.sin(np.pi*idX/Nx)/dx)**2 + (np.sin(np.pi*idY/Ny)/dy)**2 )
@@ -555,12 +555,27 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
         if update_D_Springs_Flag and d_Springs_Yes:
             from update_Damped_Springs import update_Damped_Springs
             #This function is application specific, located with main2d
+        
     else:
         update_Springs                = extra_params.update_funcs.update_springs_func
         update_Target_Point_Positions = extra_params.update_funcs.update_target_point_positions_func
         update_Beams                  = extra_params.update_funcs.update_beams_func
         update_nonInv_Beams           = extra_params.update_funcs.update_noninv_beams_func
         update_Damped_Springs         = extra_params.update_funcs.update_damped_springs_func
+    
+
+    please_Compute_External_Forcing = None
+
+    # Add artificial force from fluid boundary, if desired.
+    if not feat_path.setup.external_func:
+        if arb_ext_force_Yes: #need to test
+            # This function is user defined along with main2d
+            from please_Compute_External_Forcing import \
+            please_Compute_External_Forcing
+    else:
+        please_Compute_External_Forcing = extra_params.external_force_func
+
+
     #
     # BACKGROUND FLOW ITEMS
     #
@@ -635,8 +650,8 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
 
     
     # Initialize the initial velocities to zero.
-    U = np.zeros((Ny,Nx))                           # x-Eulerian grid velocity
-    V = np.zeros((Ny,Nx))                           # y-Eulerian grid velocity
+    U = np.zeros((Nx, Ny))                           # x-Eulerian grid velocity
+    V = np.zeros((Nx, Ny))                           # y-Eulerian grid velocity
     mVelocity = np.zeros((mass_info.shape[0],2))    # mass-Pt velocity 
 
     if arb_ext_force_Yes:
@@ -700,12 +715,12 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     F_Lag = np.zeros((xLag.size,2)) 
 
     print_vtk_files(Output_Params, ctsave,
-                    vort, uMag.T, 
-                    p.T,
-                    U.T, V.T,
+                    vort, uMag,
+                    p,
+                    U, V,
                     Lx, Ly,
-                    Nx,Ny,
-                    lagPts, 
+                    Nx ,Ny,
+                    lagPts,
                     springs_Yes, connectsMat, tracers,concentration_Yes, C,
                     Fxh, Fyh, F_Lag,
                     current_time)
@@ -765,7 +780,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
         dt, current_time, xLag_h, yLag_h, xLag_P, yLag_P, x, y, grid_Info, Lag_Struct_Params,\
         springs_info, target_info, beams_info, nonInv_beams_info, muscles_info, muscles3_info,\
         mass_info, d_springs_info, gen_force_info, poroelastic_info)
-        
+
         # Once force is calculated, can finish time-step for massive boundary
         if mass_Yes: #need to test
             # Update Massive Boundary Velocity
@@ -781,10 +796,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
             mVelocity,F_Mass_Bnd,gravity_Info)
             
         # Add artificial force from fluid boundary, if desired. 
-        if arb_ext_force_Yes: #need to test
-            # This function is user defined along with main2d
-            from please_Compute_External_Forcing import \
-            please_Compute_External_Forcing
+        if please_Compute_External_Forcing is not None: #need to test
             # Some of these arguments are mutable. Make sure they are not 
             #   getting assigned to!
             Fx_Arb, Fy_Arb, firstExtForce, indsExtForce = \
@@ -878,8 +890,17 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
             
             #Print .vtk files!
             lagPts = np.vstack((xLag, yLag, np.zeros(xLag.size))).T
-            print_vtk_files(Output_Params,ctsave,vort,uMag.T,p.T,U.T,V.T,Lx,Ly,Nx,Ny,\
-                lagPts,springs_Yes,connectsMat,tracers,concentration_Yes,C,Fxh.T,Fyh.T,F_Lag, current_time)
+            print_vtk_files(Output_Params,
+                            ctsave,
+                            vort,
+                            uMag,
+                            p,
+                            U, V,
+                            Lx, Ly,
+                            Nx, Ny,
+                            lagPts, springs_Yes, connectsMat, tracers,concentration_Yes, C,
+                            Fxh, Fyh, F_Lag,
+                            current_time)
             
             #Print Current Time
             ib2d_logger.info('Current Time(s): {0:6.6f}\n'.format(current_time))

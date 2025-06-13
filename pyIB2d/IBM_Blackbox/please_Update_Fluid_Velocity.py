@@ -97,9 +97,9 @@ def please_Update_Fluid_Velocity(U, V, Fx, Fy, rho, mu, grid_Info, dt, idX, idY,
     if FFTW:
         global fft2, ifft2, fft_mat, ifft_mat
         if fft2 is None:
-            fft_mat = pyfftw.empty_aligned((Ny,Nx), dtype='complex128')
+            fft_mat = pyfftw.empty_aligned((Nx, Ny), dtype='complex128')
             fft2 = pyfftw.builders.fft2(fft_mat)
-            ifft_mat = pyfftw.empty_aligned((Ny,Nx), dtype='complex128')
+            ifft_mat = pyfftw.empty_aligned((Nx, Ny), dtype='complex128')
             ifft2 = pyfftw.builders.ifft2(ifft_mat)
             
 
@@ -403,7 +403,7 @@ def give_RHS_HALF_Step_Term(dt,rho,Nx,Ny,A,Ax,Ay,A_sq_j,AB_j,B,Fj,string):
         global fft_mat
         rhs = fft_mat #use matrix tied to fftw plan
     else:
-        rhs = np.zeros((Ny,Nx)) #initialize rhs
+        rhs = np.zeros((Nx,Ny)) #initialize rhs
 
     if string=='x':
         #RHS: u-component
@@ -442,9 +442,9 @@ def give_Fluid_Pressure(dt,rho,dx,dy,Nx,Ny,sinIDX,sinIDY,rhs_u_hat,rhs_v_hat):
         p_hat:'''
 
     if FFTW:
-        p_hat = pyfftw.empty_aligned((Ny,Nx), dtype='complex128')
+        p_hat = pyfftw.empty_aligned((Nx, Ny), dtype='complex128')
     else:
-        p_hat = np.empty((Ny,Nx),dtype='complex128') #initialize fluid pressure
+        p_hat = np.empty((Nx, Ny),dtype='complex128') #initialize fluid pressure
     
     #-----------------------------------------------------
     #  ORIGINAL (not using stored SINE/FOURIER values)
@@ -466,9 +466,9 @@ def give_Fluid_Pressure(dt,rho,dx,dy,Nx,Ny,sinIDX,sinIDY,rhs_u_hat,rhs_v_hat):
 
     # Zero out modes.
     p_hat[0,0] = 0
-    p_hat[0,int(Nx/2)] = 0
-    p_hat[int(Ny/2),int(Nx/2)] = 0
-    p_hat[int(Ny/2),0] = 0
+    p_hat[0,int(Ny/2)] = 0
+    p_hat[int(Nx/2),int(Ny/2)] = 0
+    p_hat[int(Nx/2),0] = 0
 
 
     return p_hat
