@@ -80,14 +80,14 @@ def please_Initialize_Grid_Inputs(Grid_Input):
     #            (5): Supp
 
     # Initialize 
-    Grid_Params = np.zeros(5)
+    Grid_Params = [0 for _ in range(5)]
 
     try: 
         ind = Grid_Input[0][:].index('Nx')
-        Grid_Params[0] = Grid_Input[1][ind] # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'Nx ')),2};
+        Grid_Params[0] = int(Grid_Input[1][ind]) # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'Nx ')),2};
     
         ind = Grid_Input[0][:].index('Ny')
-        Grid_Params[1] = Grid_Input[1][ind] # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'Ny ')),2};
+        Grid_Params[1] = int(Grid_Input[1][ind]) # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'Ny ')),2};
 
         ind = Grid_Input[0][:].index('Lx')
         Grid_Params[2] = Grid_Input[1][ind] # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'Lx ')),2};
@@ -96,7 +96,7 @@ def please_Initialize_Grid_Inputs(Grid_Input):
         Grid_Params[3] = Grid_Input[1][ind] # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'Ly ')),2};
 
         ind = Grid_Input[0][:].index('supp')
-        Grid_Params[4] = Grid_Input[1][ind] # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'supp ')),2};
+        Grid_Params[4] = int(Grid_Input[1][ind]) # MATLAB: Grid_Input{find(strcmp({Grid_Input{:,1}},'supp ')),2};
 
     except ValueError:      
 
