@@ -819,7 +819,22 @@ def give_Me_nonInv_Beam_Lagrangian_Force_Densities(ds,Nb,xLag,yLag,nonInv_beams,
         fy[id_1] = fy[id_1] -   k_Beam*( Yr - 2*Yq + Yp - Cy )
         fy[id_2] = fy[id_2] + 2*k_Beam*( Yr - 2*Yq + Yp - Cy )
 
+    fx[pts_1[0]] = 0
+    fy[pts_1[0]] = 0
 
+    X_0, X_1, X_2 = xLag[pts_1[0]], xLag[pts_2[0]], xLag[pts_3[0]]
+    Y_0, Y_1, Y_2 = yLag[pts_1[0]], yLag[pts_2[0]], yLag[pts_3[0]]
+
+    Xp_2, Xq_2, Xr_2 = xLag[pts_1[2]], xLag[pts_2[2]], xLag[pts_3[2]]
+    Yp_2, Yq_2, Yr_2 = yLag[pts_1[2]], yLag[pts_2[2]], yLag[pts_3[2]]
+
+    D0x_2 = Xp_2 - 2*Xq_2 + Xr_2
+    D0y_2 = Yp_2 - 2*Yq_2 + Yr_2
+    w_2_x = X_2 - X_0
+    w_1_x = X_1 - X_0
+
+    fx[pts_2[0]] = 6*w_1_x - 2* w_2_x + D0x_2
+    fy[pts_2[0]] = 0
     # RETURN NON-INVARIANT BEAM FORCES
     return (fx, fy)
 
