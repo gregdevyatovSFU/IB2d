@@ -21,6 +21,7 @@
 
 ----------------------------------------------------------------------------------------------------'''
 
+from pathlib import Path
 from please_Read_input2d_File import please_Read_input2d_File
 import numpy as np
 import sys
@@ -354,13 +355,14 @@ def please_Initialize_Lag_Name_Inputs(Lag_Name_Input):
 #
 #################################################################################
 
-def please_Initialize_Simulation():
+def please_Initialize_Simulation(input_file: Path = None):
 
     
     #
     # READ IN ALL INPUTS INTO CELLS FROM INPUT2D #
     #
-    params = please_Read_input2d_File('input2d')
+    input_file = input_file or 'input2d'
+    params = please_Read_input2d_File(input_file)
 
     #
     # EXTRACT INDIVIDUAL CELL GROUPS #
