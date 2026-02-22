@@ -21,6 +21,8 @@
 
 ----------------------------------------------------------------------------------------------------'''
 
+from typing import Optional
+
 import numpy as np
 from math import sqrt
 import os
@@ -69,11 +71,10 @@ except:
 ###############################################################################
 
 
-from extra_interface import updated_path, legacy_path, ExtraParams
-feat_path = updated_path
+from extra_interface import feature_selection, ExtraParams
 
 def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,Lag_Name_Params,
-         extra_params: ExtraParams = None):
+         extra_params: Optional[ExtraParams] = None):
 
     ''' 2D IMMERSED BOUNDARY SOLVER ON RECTANGULAR DOMAIN w/ PERIODIC BOUNDARIES
 
@@ -535,7 +536,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     update_nonInv_Beams           = None
     update_Damped_Springs         = None
     
-    if not feat_path.setup.update_funcs:
+    if not feature_selection.setup.update_funcs:
         if update_Springs_Flag and springs_Yes:
             #This function is application specific, located with main2d
             from update_Springs import update_Springs

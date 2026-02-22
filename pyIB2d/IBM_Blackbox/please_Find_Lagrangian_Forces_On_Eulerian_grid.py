@@ -26,8 +26,7 @@ import numpy as np
 from Supp import give_1D_NonZero_Delta_Indices
 from Supp import give_Eulerian_Lagrangian_Distance, give_Delta_Kernel
 
-from extra_interface import updated_path, legacy_path, NotBackCompat
-feat_path = updated_path
+from extra_interface import feature_selection, NotBackCompat
 
 import logging
 ib2d_logger = logging.getLogger("ib2d")
@@ -157,13 +156,13 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
         #[Tx Ty] = give_Me_Spring_Lagrangian_Tension(Nb,dLag_x,dLag_y,springs);
 
         # Compute the Lagrangian SPRING force densities!
-        if not updated_path.perf.vec_spring_forces:
+        if not feature_selection.perf.vec_spring_forces:
             fx_springs, fy_springs = give_Me_Spring_Lagrangian_Force_Densities(
                 ds,Nb,xLag,yLag,springs,Lx,Ly)
         else: 
             fx_springs, fy_springs = spring_forces(ds,Nb,xLag,yLag,springs,Lx,Ly)
             
-            if updated_path.perf.check_corr_spring:
+            if feature_selection.perf.check_corr_spring:
                 fx_springs_ref, fy_springs_ref = give_Me_Spring_Lagrangian_Force_Densities(
                     ds,Nb,xLag,yLag,springs,Lx,Ly)
                 
@@ -196,13 +195,13 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
     if ( target_pts_Yes == 1):
         
         # Compute the Lagrangian TARGET force densities!
-        if not updated_path.perf.vec_target_forces:
+        if not feature_selection.perf.vec_target_forces:
             fx_target, fy_target = give_Me_Target_Lagrangian_Force_Densities(
                 ds,xLag,yLag,targets,Lx,Ly)
         else: 
             fx_target, fy_target = target_forces(ds,xLag,yLag,targets,Lx,Ly)
             
-            if updated_path.perf.check_corr_target:
+            if feature_selection.perf.check_corr_target:
                 fx_target_ref, fy_target_ref = give_Me_Target_Lagrangian_Force_Densities(
                     ds,xLag,yLag,targets,Lx,Ly)
                 
@@ -222,7 +221,7 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
     #------------------------------------------------------------------------
     if ( beams_Yes == 1 ):
         # Compute the Lagrangian SPRING force densities!
-        if not updated_path.perf.vec_nib_forces:        
+        if not feature_selection.perf.vec_nib_forces:        
             fx_beams, fy_beams = give_Me_Beam_Lagrangian_Force_Densities(
                 ds,Nb,xLag,yLag,beams,Lx,Ly)
         else:
@@ -934,7 +933,7 @@ def give_Me_nonInv_Beam_Lagrangian_Force_Densities(ds,Nb,xLag,yLag,nonInv_beams,
         fy[id_1] = fy[id_1] -   k_Beam*( Yr - 2*Yq + Yp - Cy )
         fy[id_2] = fy[id_2] + 2*k_Beam*( Yr - 2*Yq + Yp - Cy )
 
-    if feat_path.setup.fix_beam_end:
+    if feature_selection.setup.fixed_1d_end:
         fx[pts_1[0]] = 0
         fy[pts_1[0]] = 0
 

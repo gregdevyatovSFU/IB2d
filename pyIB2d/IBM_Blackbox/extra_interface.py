@@ -6,6 +6,7 @@ from dataclasses import dataclass, field, replace
 class SetupFeatures:
     update_funcs:  bool = False
     external_func: bool = False
+    fixed_1d_end: bool = False
 
 @dataclass(frozen=True, slots=True)
 class PerfFeatures:
@@ -21,9 +22,9 @@ class LegacyFeatures:
     setup: SetupFeatures = field(default_factory=SetupFeatures)
     perf:  PerfFeatures  = field(default_factory=PerfFeatures)
 
-legacy_path = LegacyFeatures()
+_legacy_path = LegacyFeatures()
 
-updated_path = LegacyFeatures(
+_updated_path = LegacyFeatures(
     setup=SetupFeatures(update_funcs=True, external_func=True),
     perf=PerfFeatures(
         vec_spring_forces=True,
@@ -32,15 +33,17 @@ updated_path = LegacyFeatures(
     ),
 )
 
-debug_path = replace(
-    updated_path,
+_debug_path = replace(
+    _updated_path,
     perf=replace(
-        updated_path.perf,
+        _updated_path.perf,
         check_corr_spring=True,
         check_corr_nib=True,
         check_corr_target=True,
     ),
 )
+
+feature_selection = _debug_path
 
 class ExtraParams(NamedTuple):
     class UpdateFuncs(NamedTuple):
@@ -52,7 +55,6 @@ class ExtraParams(NamedTuple):
 
     update_funcs: UpdateFuncs
     external_force_func: Optional[Callable] = None
-
 
 class NotBackCompat(Exception):
     pass
