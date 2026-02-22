@@ -1552,8 +1552,9 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
         data_vars={
             'u': (('x', 'y',), U),
             'v': (('x', 'y',), V),
-            'f_y': (('x', 'y',), fXGrid),
-            'f_x': (('x', 'y',), fYGrid),
+            'p': (('x', 'y',), p),
+            # 'f_y': (('x', 'y',), fXGrid),
+            # 'f_x': (('x', 'y',), fYGrid),
         },
         coords={
             'x': x_coord,
@@ -1573,11 +1574,11 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
         data_vars={
             'X':      (('s', ), lagPts[:, 0]),
             'Y':      (('s', ), lagPts[:, 1]),
-            'f_x':    (('s', ), F_Lag[:,0]),
-            'f_y':    (('s', ), F_Lag[:,1]),
-            'f_mag':  (('s', ), fLagMag),
-            'f_norm': (('s', ), F_Normal_Mag[:, 0]),
-            'f_tan':  (('s', ), F_Tan_Mag[:, 0]),
+            # 'f_x':    (('s', ), F_Lag[:,0]),
+            # 'f_y':    (('s', ), F_Lag[:,1]),
+            # 'f_mag':  (('s', ), fLagMag),
+            # 'f_norm': (('s', ), F_Normal_Mag[:, 0]),
+            # 'f_tan':  (('s', ), F_Tan_Mag[:, 0]),
         },
         coords={
             's': s_coord,
