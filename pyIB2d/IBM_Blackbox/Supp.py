@@ -469,6 +469,39 @@ def D(u,dz,string):
     return u_z
 
 
+def D_no_alloc(u,dz,string):
+    ''' [Alloc Efficient] [Unused] Finds centered 1st derivative in specified direction
+    
+    Args:
+        u:      velocity 
+        dz:     spatial step in "z"-direction
+        string: specifies which 1ST derivative to take (to enforce periodicity)
+        
+    Returns:
+        u_z:'''
+    inv2dz = 0.5 / dz
+
+    u_z = np.empty_like(u, dtype=u.dtype)
+
+    if string == 'x':
+        # interior
+        np.subtract(u[:, 2:], u[:, :-2], out=u_z[:, 1:-1])
+
+        # periodic edges
+        np.subtract(u[:, 1], u[:, -1], out=u_z[:, 0])
+        np.subtract(u[:, 0], u[:, -2], out=u_z[:, -1])
+    else:
+        # interior
+        np.subtract(u[2:, :], u[:-2, :], out=u_z[1:-1, :])
+
+        # periodic edges
+        np.subtract(u[1, :], u[-1, :], out=u_z[0, :])
+        np.subtract(u[0, :], u[-2, :], out=u_z[-1, :])
+
+    u_z *= inv2dz
+
+    return u_z
+
 ########################################################################
 #
 # FUNCTION: Finds CENTERED finite difference approximation to 2ND

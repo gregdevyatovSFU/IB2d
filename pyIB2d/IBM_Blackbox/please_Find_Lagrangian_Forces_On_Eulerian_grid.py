@@ -26,6 +26,9 @@ import numpy as np
 from Supp import give_1D_NonZero_Delta_Indices
 from Supp import give_Eulerian_Lagrangian_Distance, give_Delta_Kernel
 
+from extra_interface import updated_path, legacy_path, NotBackCompat
+feat_path = updated_path
+
 import logging
 ib2d_logger = logging.getLogger("ib2d")
  
@@ -154,9 +157,21 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
         #[Tx Ty] = give_Me_Spring_Lagrangian_Tension(Nb,dLag_x,dLag_y,springs);
 
         # Compute the Lagrangian SPRING force densities!
-        fx_springs, fy_springs = give_Me_Spring_Lagrangian_Force_Densities(ds,Nb,\
-            xLag,yLag,springs,Lx,Ly)
-        
+        if not updated_path.perf.vec_spring_forces:
+            fx_springs, fy_springs = give_Me_Spring_Lagrangian_Force_Densities(
+                ds,Nb,xLag,yLag,springs,Lx,Ly)
+        else: 
+            fx_springs, fy_springs = spring_forces(ds,Nb,xLag,yLag,springs,Lx,Ly)
+            
+            if updated_path.perf.check_corr_spring:
+                fx_springs_ref, fy_springs_ref = give_Me_Spring_Lagrangian_Force_Densities(
+                    ds,Nb,xLag,yLag,springs,Lx,Ly)
+                
+                close_in_x = np.allclose(fx_springs, fx_springs_ref, rtol=1e-9, atol=1e-12)
+                close_in_y = np.allclose(fy_springs, fy_springs_ref, rtol=1e-9, atol=1e-12)
+
+                if not close_in_x or not close_in_y:
+                    raise NotBackCompat("Spring forces didn't match")
     else:
         fx_springs = np.zeros(Nb) #No x-forces coming from springs
         fy_springs = np.zeros(Nb) #No y-forces coming from springs
@@ -179,9 +194,22 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
     # Compute TARGET FORCE DENSITIES (if there are target points!)
     #--------------------------------------------------------------
     if ( target_pts_Yes == 1):
+        
         # Compute the Lagrangian TARGET force densities!
-        fx_target, fy_target = give_Me_Target_Lagrangian_Force_Densities(ds,\
-            xLag,yLag,targets,Lx,Ly)
+        if not updated_path.perf.vec_target_forces:
+            fx_target, fy_target = give_Me_Target_Lagrangian_Force_Densities(
+                ds,xLag,yLag,targets,Lx,Ly)
+        else: 
+            fx_target, fy_target = target_forces(ds,xLag,yLag,targets,Lx,Ly)
+            
+            if updated_path.perf.check_corr_target:
+                fx_target_ref, fy_target_ref = give_Me_Target_Lagrangian_Force_Densities(
+                    ds,xLag,yLag,targets,Lx,Ly)
+                
+                close_in_x = np.allclose(fx_target, fx_target_ref, rtol=1e-9, atol=1e-12)
+                close_in_y = np.allclose(fy_target, fy_target_ref, rtol=1e-9, atol=1e-12)
+                if not close_in_x or not close_in_y:
+                    raise NotBackCompat("Target forces didn't match")
         
     else:
         fx_target = np.zeros(Nb) #No x-forces coming from target points
@@ -193,10 +221,25 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
     # Compute BEAM (TORSIONAL SPRING) FORCE DENSITIES (if there are beams!)
     #------------------------------------------------------------------------
     if ( beams_Yes == 1 ):
-
         # Compute the Lagrangian SPRING force densities!
-        fx_beams, fy_beams = give_Me_Beam_Lagrangian_Force_Densities(ds,Nb,\
-            xLag,yLag,beams,Lx,Ly)
+        if not updated_path.perf.vec_nib_forces:        
+            fx_beams, fy_beams = give_Me_Beam_Lagrangian_Force_Densities(
+                ds,Nb,xLag,yLag,beams,Lx,Ly)
+        else:
+            raise NotImplemented("Not vectorized NIB forces yet")
+            # fx_beams, fx_beams = spring_forces(
+            #     ds,Nb,xLag,yLag,springs,Lx,Ly)
+            
+            if updated_path.perf.check_corr_nib:
+                fx_beam_ref, fy_beam_ref = give_Me_Spring_Lagrangian_Force_Densities(
+                    ds,Nb,xLag,yLag,springs,Lx,Ly)
+                
+                close_in_x = np.allclose(fx_beams, fx_beam_ref, rtol=1e-9, atol=1e-12)
+                close_in_y = np.allclose(fy_beams, fy_beam_ref, rtol=1e-9, atol=1e-12)
+
+                if not close_in_x or not close_in_y:
+                    raise NotBackCompat("NIB forces didn't match")
+
         
     else:
         fx_beams = np.zeros(Nb) #No x-forces coming from beams
@@ -484,9 +527,56 @@ def give_3_Element_Muscle_Force_Densities(Nb,xLag,yLag,xLag_P,yLag_P,muscles3,\
                         # i in y-direction (this is FOLLOWER node for this spring)
         
     return (fx,fy)
+
+def spring_forces(ds,Nb,xLag,yLag,springs,Lx,Ly):
+    ''' [Vectorized] Computes the Lagrangian spring force densities
     
+    Args:
+        ds:
+        Nb:
+        xLag:
+        yLag:
+        springs:
+        
+    Returns:
+        fx:
+        fy:'''
+    Nsprings = springs.shape[0]
+    leader   = springs[:, 0].astype(np.intp)
+    follower = springs[:, 1].astype(np.intp)
+    K        = springs[:, 2]
+    RL       = springs[:, 3]
+    alpha    = springs[:, 4]
+
+    dx = xLag[follower] - xLag[leader]
+    dy = yLag[follower] - yLag[leader]
+
+    sgnx = np.sign(dx)
+    sgny = np.sign(dy)
+    dx = np.where(np.abs(dx) > Lx/2, sgnx*(Lx - sgnx * dx), dx)
+    dy = np.where(np.abs(dy) > Ly/2, sgny*(Ly - sgny * dy), dy)
     
+    r   = np.hypot(dx, dy)
+    dr  = r - RL
+
+    pow = np.power(dr, alpha)
+
+    scale = np.zeros_like(r)
+    # TODO: figure out if this guard is needed
+    # nz = r > 0.0
+    nz = ~np.zeros_like(scale, dtype=bool)
+    scale[nz] = 0.5 * (alpha[nz] + 1.0) * K[nz] * pow[nz] / r[nz]
     
+    sFx = scale * dx
+    sFy = scale * dy
+
+    # Accumulate per node (leader gets +, follower gets -)
+    fx = (np.bincount(leader,  sFx, minlength=Nb)
+        - np.bincount(follower, sFx, minlength=Nb))
+    fy = (np.bincount(leader,  sFy, minlength=Nb)
+        - np.bincount(follower, sFy, minlength=Nb))
+
+    return fx, fy
 ###########################################################################
 #
 # FUNCTION computes the Lagrangian SPRING Force Densities .
@@ -661,13 +751,6 @@ def give_Me_Damped_Springs_Lagrangian_Force_Densities(ds,Nb,\
 
 
 
-
-
-
-
-
-
-
 ################################################################################
 #
 # FUNCTION: computes the Mass Lagrangian Force Densities! 
@@ -711,7 +794,39 @@ def give_Me_Mass_Lagrangian_Force_Densities(ds,xLag,yLag,masses):
     return (fx_mass, fy_mass, F_Mass)
     
     
+def target_forces(ds,xLag,yLag,targets,Lx,Ly):
+    ''' [Vectorized] Computes the Target-Pt Densities
     
+    Args:
+        ds:
+        xLag:
+        yLag:
+        targets:
+        
+    Returns:
+        fx_target:
+        fy_target:'''
+    Nb = xLag.size
+
+    IDs      = targets[:, 0].astype(np.intp, copy=False)
+    xPts     = targets[:, 1]
+    yPts     = targets[:, 2]
+    kStiffs  = targets[:, 3]
+
+    dx = xPts - xLag[IDs]
+    dy = yPts - yLag[IDs]
+
+    dx = np.where(np.abs(dx) > Lx/2, np.sign(dx)*( Lx - np.sign(dx)*dx), dx)
+    dy = np.where(np.abs(dy) > Lx/2, np.sign(dy)*( Ly - np.sign(dy)*dy), dy)
+
+    cx = kStiffs * dx
+    cy = kStiffs * dy
+
+    fx_target = np.bincount(IDs, weights=cx, minlength=Nb)
+    fy_target = np.bincount(IDs, weights=cy, minlength=Nb)
+
+    return fx_target, fy_target
+
 ################################################################################
 #
 # FUNCTION: computes the Target-Pt Force Densities! 

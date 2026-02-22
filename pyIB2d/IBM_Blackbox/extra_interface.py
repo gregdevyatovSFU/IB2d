@@ -1,35 +1,58 @@
-from typing import NamedTuple
+from typing import Callable, NamedTuple, Optional
 
+from dataclasses import dataclass, field, replace
 
-class _LegacyFeatures(NamedTuple):
-    class SetupFeatures(NamedTuple):
-        update_funcs: bool
-        external_func: bool
+@dataclass(frozen=True, slots=True)
+class SetupFeatures:
+    update_funcs:  bool = False
+    external_func: bool = False
 
-    setup: SetupFeatures
+@dataclass(frozen=True, slots=True)
+class PerfFeatures:
+    vec_spring_forces: bool = False
+    vec_nib_forces:    bool = False
+    vec_target_forces: bool = False
+    check_corr_spring: bool = False
+    check_corr_nib:    bool = False
+    check_corr_target: bool = False
 
-legacy_path = _LegacyFeatures(
-    setup=_LegacyFeatures.SetupFeatures(
-        update_funcs=False,
-        external_func=False
-    )
+@dataclass(frozen=True, slots=True)
+class LegacyFeatures:
+    setup: SetupFeatures = field(default_factory=SetupFeatures)
+    perf:  PerfFeatures  = field(default_factory=PerfFeatures)
+
+legacy_path = LegacyFeatures()
+
+updated_path = LegacyFeatures(
+    setup=SetupFeatures(update_funcs=True, external_func=True),
+    perf=PerfFeatures(
+        vec_spring_forces=True,
+        vec_nib_forces=True,
+        vec_target_forces=True,
+    ),
 )
 
-updated_path = _LegacyFeatures(
-    setup=_LegacyFeatures.SetupFeatures(
-        update_funcs=True,
-        external_func=True
-    )
+debug_path = replace(
+    updated_path,
+    perf=replace(
+        updated_path.perf,
+        check_corr_spring=True,
+        check_corr_nib=True,
+        check_corr_target=True,
+    ),
 )
-
 
 class ExtraParams(NamedTuple):
     class UpdateFuncs(NamedTuple):
-        update_springs_func                : callable = None
-        update_target_point_positions_func : callable = None
-        update_beams_func                  : callable = None
-        update_noninv_beams_func           : callable = None
-        update_damped_springs_func         : callable = None
+        update_springs_func:                Optional[Callable] = None
+        update_target_point_positions_func: Optional[Callable] = None
+        update_beams_func:                  Optional[Callable] = None
+        update_noninv_beams_func:           Optional[Callable] = None
+        update_damped_springs_func:         Optional[Callable] = None
 
     update_funcs: UpdateFuncs
-    external_force_func: callable = None
+    external_force_func: Optional[Callable] = None
+
+
+class NotBackCompat(Exception):
+    pass
