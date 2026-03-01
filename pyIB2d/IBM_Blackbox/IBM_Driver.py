@@ -568,7 +568,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
     please_Compute_External_Forcing = None
 
     # Add artificial force from fluid boundary, if desired.
-    if not feat_path.setup.external_func:
+    if not feature_selection.setup.external_func:
         if arb_ext_force_Yes: #need to test
             # This function is user defined along with main2d
             from please_Compute_External_Forcing import \
@@ -726,8 +726,8 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
                     Fxh, Fyh, F_Lag,
                     current_time)
     
-    ib2d_logger.info('\n |****** Begin IMMERSED BOUNDARY SIMULATION! ******| \n\n')
-    ib2d_logger.info('Current Time(s): {0}\n'.format(current_time))
+    ib2d_logger.pulse('\n |****** Begin IMMERSED BOUNDARY SIMULATION! ******| \n\n')
+    ib2d_logger.pulse(f'Current Time(s): {current_time}\n')
     ctsave += 1
     
     #-----------------------------------------------------------------------------------------------
@@ -877,7 +877,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
         #-------------------------------------------------------------------   
         #     ******** Save/Plot Lagrangian/Eulerian Dynamics! ********
         #-------------------------------------------------------------------   
-        if ( ( cter % pDump == 0) and (cter >= pDump) ):
+        if ( (cter >= pDump) and ( cter % pDump in (pDump-2, pDump-1, 0, 1, 2)) ):
             
             #Compute vorticity, uMagnitude
             vort = give_Me_Vorticity(U,V,dx,dy)
@@ -904,7 +904,7 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
                             current_time)
             
             #Print Current Time
-            ib2d_logger.info('Current Time(s): {0:6.6f}\n'.format(current_time))
+            ib2d_logger.pulse(f'Current Time(s): {current_time:6.6f}\n')
             
             #Update print counter for filename index
             ctsave+=1
@@ -1471,182 +1471,180 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
     dx = Lx/Nx 
     dy = Ly/Ny
 
-
-    #Go into viz_IB2d directory. This was throwing an error because we're already there!
-    if os.path.split(os.getcwd())[1] != 'viz_IB2d':
-        os.chdir('viz_IB2d')
-
     #Find string number for storing files
     strNUM = give_String_Number_For_VTK(ctsave)
-    lagPtsName = 'lagsPts.'+strNUM+'.vtk'
 
-    #Print Lagrangian Pts to .vtk format
-    # savevtk_points(lagPts, lagPtsName, 'lagPts')
+    if not feature_selection.output.netcdf_files:
+        #Go into viz_IB2d directory. This was throwing an error because we're already there!
+        if os.path.split(os.getcwd())[1] != 'viz_IB2d':
+            os.chdir('viz_IB2d')
 
-    # Print Spring Connections (* if springs *)
-    if springs_Yes:
-        #Print Lagrangian Pts w/ CONNECTIONS to .vtk format
-        lagPtsConName = 'lagPtsConnect.'+strNUM+'.vtk'
-        savevtk_points_connects(lagPts, lagPtsConName, 'lagPtsConnected',connectsMat )
+        lagPtsName = 'lagsPts.'+strNUM+'.vtk'
 
-    #Print Tracer Pts (*if tracers*)
-    if tracers[0,0] == 1:
-        tracersPtsName = 'tracer.'+strNUM+'.vtk'
-        #tMatrix = tracers[:,1:4]
-        savevtk_points(tracers[:,1:4],tracersPtsName, 'tracers') 
+        #Print Lagrangian Pts to .vtk format
+        # savevtk_points(lagPts, lagPtsName, 'lagPts')
 
+        # Print Spring Connections (* if springs *)
+        if springs_Yes:
+            #Print Lagrangian Pts w/ CONNECTIONS to .vtk format
+            lagPtsConName = 'lagPtsConnect.'+strNUM+'.vtk'
+            savevtk_points_connects(lagPts, lagPtsConName, 'lagPtsConnected',connectsMat )
 
-    #Print SCALAR DATA (i.e., colormap data) to .vtk file
-    if Output_Params[7] == 1:
-        vortfName = 'Omega.'+strNUM+'.vtk'
-        savevtk_scalar(vort, vortfName, 'Omega',dx,dy)
-
-    if Output_Params[8] == 1:
-        pfName = 'P.'+strNUM+'.vtk'
-        savevtk_scalar(p, pfName, 'P',dx,dy)
-
-    if Output_Params[10] == 1:
-        uMagfName = 'uMag.'+strNUM+'.vtk'
-        savevtk_scalar(uMag, uMagfName, 'uMag',dx,dy)
-
-    if Output_Params[11] == 1:
-        uXName = 'uX.'+strNUM+'.vtk'
-        savevtk_scalar(U, uXName, 'uX',dx,dy)
-    
-    if Output_Params[12] == 1:
-        uYName = 'uY.'+strNUM+'.vtk'    
-        savevtk_scalar(V, uYName, 'uY',dx,dy)
-
-    if Output_Params[14] == 1:
-        fXName = 'fX.'+strNUM+'.vtk'
-        savevtk_scalar(fXGrid, fXName, 'fX',dx,dy)
-
-    if Output_Params[15] == 1:
-        fYName = 'fY.'+strNUM+'.vtk'
-        savevtk_scalar(fYGrid, fYName, 'fY',dx,dy)
-    
-    if Output_Params[13] == 1:
-        fMagName = 'fMag.'+strNUM+'.vtk'
-        savevtk_scalar(np.sqrt( fXGrid*fXGrid + fYGrid*fYGrid ), fMagName, 'fMag',dx,dy)
-
-    if concentration_Yes:
-        confName = 'concentration.'+strNUM+'.vtk'
-        savevtk_scalar(C.T, confName, 'Concentration',dx,dy)
-
-    #Print VECTOR DATA (i.e., velocity data) to .vtk file
-    if Output_Params[9] == 1:
-        velocityName = 'u.'+strNUM+'.vtk'
-        savevtk_vector(U, V, velocityName, 'u',dx,dy)
-    
-    #Get out of viz_IB2d folder
-    os.chdir('..')
-
-    from pathlib import Path
-    import xarray as xr
-    field_file = Path().cwd() / f"fields.{strNUM}.nc"
-    lag_file = Path().cwd() / f"lag_points.{strNUM}.nc"
-
-    x_coord = np.arange(0., Lx, step=dx)
-    y_coord = np.arange(0., Ly, step=dy)
-
-    ds_e = xr.Dataset(
-        data_vars={
-            'u': (('x', 'y',), U),
-            'v': (('x', 'y',), V),
-            'p': (('x', 'y',), p),
-            # 'f_y': (('x', 'y',), fXGrid),
-            # 'f_x': (('x', 'y',), fYGrid),
-        },
-        coords={
-            'x': x_coord,
-            'y': y_coord,
-            't': current_time,
-        },
-        attrs={}
-    )
-    ds_e.to_netcdf(field_file)
-
-    F_Tan_Mag,F_Normal_Mag = please_Compute_Normal_Tangential_Forces_On_Lag_Pts(lagPts,F_Lag)
-    fLagMag = np.sqrt( F_Lag[:,0]*F_Lag[:,0] + F_Lag[:,1]*F_Lag[:,1] )
-
-    s_coord = np.arange(0, lagPts.shape[0])
-    
-    ds_l = xr.Dataset(
-        data_vars={
-            'X':      (('s', ), lagPts[:, 0]),
-            'Y':      (('s', ), lagPts[:, 1]),
-            # 'f_x':    (('s', ), F_Lag[:,0]),
-            # 'f_y':    (('s', ), F_Lag[:,1]),
-            # 'f_mag':  (('s', ), fLagMag),
-            # 'f_norm': (('s', ), F_Normal_Mag[:, 0]),
-            # 'f_tan':  (('s', ), F_Tan_Mag[:, 0]),
-        },
-        coords={
-            's': s_coord,
-            't': current_time,
-        },
-        attrs={}
-    )
-    ds_l.to_netcdf(lag_file)
+        #Print Tracer Pts (*if tracers*)
+        if tracers[0,0] == 1:
+            tracersPtsName = 'tracer.'+strNUM+'.vtk'
+            #tMatrix = tracers[:,1:4]
+            savevtk_points(tracers[:,1:4],tracersPtsName, 'tracers') 
 
 
-    #
-    # Print Lagrangian Force Data to hier_IB2d_data folder
-    #
-    NLagPts = lagPts.shape[1]
-    
-    if Output_Params[16] == 1:
+        #Print SCALAR DATA (i.e., colormap data) to .vtk file
+        if Output_Params[7] == 1:
+            vortfName = 'Omega.'+strNUM+'.vtk'
+            savevtk_scalar(vort, vortfName, 'Omega',dx,dy)
 
-    # THE CASE IF LESS THAN (or =) to 5 Lag. Pts. 
-        if NLagPts <= 5:
-            os.chdir('hier_IB2d_data') #change directory to hier-data folder
+        if Output_Params[8] == 1:
+            pfName = 'P.'+strNUM+'.vtk'
+            savevtk_scalar(p, pfName, 'P',dx,dy)
+
+        if Output_Params[10] == 1:
+            uMagfName = 'uMag.'+strNUM+'.vtk'
+            savevtk_scalar(uMag, uMagfName, 'uMag',dx,dy)
+
+        if Output_Params[11] == 1:
+            uXName = 'uX.'+strNUM+'.vtk'
+            savevtk_scalar(U, uXName, 'uX',dx,dy)
         
-            # Save x-y force data!
-            fLag_XName = 'fX_Lag.'+strNUM+'.vtk'
-            fLag_YName = 'fY_Lag.'+strNUM+'.vtk'
-            savevtk_points_with_scalar_data( lagPts, F_Lag[:,0], fLag_XName, 'fX_Lag')
-            savevtk_points_with_scalar_data( lagPts, F_Lag[:,1], fLag_YName, 'fY_Lag')
+        if Output_Params[12] == 1:
+            uYName = 'uY.'+strNUM+'.vtk'    
+            savevtk_scalar(V, uYName, 'uY',dx,dy)
 
-            # Define force magnitude name
+        if Output_Params[14] == 1:
+            fXName = 'fX.'+strNUM+'.vtk'
+            savevtk_scalar(fXGrid, fXName, 'fX',dx,dy)
+
+        if Output_Params[15] == 1:
+            fYName = 'fY.'+strNUM+'.vtk'
+            savevtk_scalar(fYGrid, fYName, 'fY',dx,dy)
+        
+        if Output_Params[13] == 1:
             fMagName = 'fMag.'+strNUM+'.vtk'
+            savevtk_scalar(np.sqrt( fXGrid*fXGrid + fYGrid*fYGrid ), fMagName, 'fMag',dx,dy)
+
+        if concentration_Yes:
+            confName = 'concentration.'+strNUM+'.vtk'
+            savevtk_scalar(C.T, confName, 'Concentration',dx,dy)
+
+        #Print VECTOR DATA (i.e., velocity data) to .vtk file
+        if Output_Params[9] == 1:
+            velocityName = 'u.'+strNUM+'.vtk'
+            savevtk_vector(U, V, velocityName, 'u',dx,dy)
         
-            # Compute magnitude of forces on Lagrangian boundary
-            fLagMag = np.sqrt( F_Lag[:,0]*F_Lag[:,0] + F_Lag[:,1]*F_Lag[:,1] ) 
+        #Get out of viz_IB2d folder
+        os.chdir('..')
         
-            # Print UNSTRUCTURED POINT DATA w/ SCALAR associated with it
-            savevtk_points_with_scalar_data( lagPts, fLagMag, fMagName, 'fMag')
+        #
+        # Print Lagrangian Force Data to hier_IB2d_data folder
+        #
+        NLagPts = lagPts.shape[1]
         
-            # Get out of hier_IB2d_data folder
-            os.chdir('..') 
-    
-        # THE CASE IF GREATER THAN 5 Lag. Pts. 
-        else:
-            F_Tan_Mag,F_Normal_Mag = please_Compute_Normal_Tangential_Forces_On_Lag_Pts(lagPts,F_Lag)
+        if Output_Params[16] == 1:
 
-            os.chdir('hier_IB2d_data') #change directory to hier-data folder
+        # THE CASE IF LESS THAN (or =) to 5 Lag. Pts. 
+            if NLagPts <= 5:
+                os.chdir('hier_IB2d_data') #change directory to hier-data folder
+            
+                # Save x-y force data!
+                fLag_XName = 'fX_Lag.'+strNUM+'.vtk'
+                fLag_YName = 'fY_Lag.'+strNUM+'.vtk'
+                savevtk_points_with_scalar_data( lagPts, F_Lag[:,0], fLag_XName, 'fX_Lag')
+                savevtk_points_with_scalar_data( lagPts, F_Lag[:,1], fLag_YName, 'fY_Lag')
 
-            # Save x-y force data!
-            fLag_XName = 'fX_Lag.'+strNUM+'.vtk'
-            fLag_YName = 'fY_Lag.'+strNUM+'.vtk'
-            savevtk_points_with_scalar_data( lagPts, F_Lag[:,0], fLag_XName, 'fX_Lag')
-            savevtk_points_with_scalar_data( lagPts, F_Lag[:,1], fLag_YName, 'fY_Lag')
+                # Define force magnitude name
+                fMagName = 'fMag.'+strNUM+'.vtk'
+            
+                # Compute magnitude of forces on Lagrangian boundary
+                fLagMag = np.sqrt( F_Lag[:,0]*F_Lag[:,0] + F_Lag[:,1]*F_Lag[:,1] ) 
+            
+                # Print UNSTRUCTURED POINT DATA w/ SCALAR associated with it
+                savevtk_points_with_scalar_data( lagPts, fLagMag, fMagName, 'fMag')
+            
+                # Get out of hier_IB2d_data folder
+                os.chdir('..') 
+        
+            # THE CASE IF GREATER THAN 5 Lag. Pts. 
+            else:
+                F_Tan_Mag,F_Normal_Mag = please_Compute_Normal_Tangential_Forces_On_Lag_Pts(lagPts,F_Lag)
 
-            # Save force magnitude, mag. normal force, and mag. tangential force
-            fMagName = 'fMag.'+strNUM+'.vtk'
-            fNormalName = 'fNorm.'+strNUM+'.vtk'
-            fTangentName = 'fTan.'+strNUM+'.vtk'
+                os.chdir('hier_IB2d_data') #change directory to hier-data folder
 
-            # Compute magnitude of forces on Lagrangian boundary
-            fLagMag = np.sqrt( F_Lag[:,0]*F_Lag[:,0] + F_Lag[:,1]*F_Lag[:,1] )
+                # Save x-y force data!
+                fLag_XName = 'fX_Lag.'+strNUM+'.vtk'
+                fLag_YName = 'fY_Lag.'+strNUM+'.vtk'
+                savevtk_points_with_scalar_data( lagPts, F_Lag[:,0], fLag_XName, 'fX_Lag')
+                savevtk_points_with_scalar_data( lagPts, F_Lag[:,1], fLag_YName, 'fY_Lag')
 
-            # Print UNSTRUCTURED POINT DATA w/ SCALAR associated with it
-            savevtk_points_with_scalar_data( lagPts, fLagMag, fMagName, 'fMag')
-            savevtk_points_with_scalar_data( lagPts, F_Normal_Mag, fNormalName, 'fNorm')
-            savevtk_points_with_scalar_data( lagPts, F_Tan_Mag, fTangentName, 'fTan')
+                # Save force magnitude, mag. normal force, and mag. tangential force
+                fMagName = 'fMag.'+strNUM+'.vtk'
+                fNormalName = 'fNorm.'+strNUM+'.vtk'
+                fTangentName = 'fTan.'+strNUM+'.vtk'
 
-            # Get out of hier_IB2d_data folder
-            os.chdir('..') 
-    
+                # Compute magnitude of forces on Lagrangian boundary
+                fLagMag = np.sqrt( F_Lag[:,0]*F_Lag[:,0] + F_Lag[:,1]*F_Lag[:,1] )
+
+                # Print UNSTRUCTURED POINT DATA w/ SCALAR associated with it
+                savevtk_points_with_scalar_data( lagPts, fLagMag, fMagName, 'fMag')
+                savevtk_points_with_scalar_data( lagPts, F_Normal_Mag, fNormalName, 'fNorm')
+                savevtk_points_with_scalar_data( lagPts, F_Tan_Mag, fTangentName, 'fTan')
+
+                # Get out of hier_IB2d_data folder
+                os.chdir('..') 
+    else:
+        from pathlib import Path
+        import xarray as xr
+
+        if Path.cwd().name == "viz_IB2d":
+            os.chdir("..")
+
+        data_path = Path.cwd() / "netcdf"
+        data_path.mkdir(exist_ok=True)
+
+        field_file = data_path / f"fields.{strNUM}.nc"
+        lag_file = data_path / f"lag_points.{strNUM}.nc"
+
+        x_coord = np.arange(0., Lx, step=dx)
+        y_coord = np.arange(0., Ly, step=dy)
+
+        ds_e = xr.Dataset(
+            data_vars={
+                'u': (('t', 'x', 'y'), U[np.newaxis, :, :]),
+                'v': (('t', 'x', 'y'), V[np.newaxis, :, :]),
+                'p': (('t', 'x', 'y'), p[np.newaxis, :, :]),
+            },
+            coords={
+                'x': x_coord,
+                'y': y_coord,
+                't': [current_time],
+            },
+            attrs={}
+        )
+        ds_e.to_netcdf(field_file, unlimited_dims='t')
+        
+        s_coord = np.arange(0, lagPts.shape[0])
+        
+        ds_l = xr.Dataset(
+            data_vars={
+                'X':      (('t', 's',), lagPts[:, 0][np.newaxis, :]),
+                'Y':      (('t', 's',), lagPts[:, 1][np.newaxis, :]),
+            },
+            coords={
+                's': s_coord,
+                't': [current_time],
+            },
+            attrs={}
+        )
+        ds_l.to_netcdf(lag_file, unlimited_dims='t')
+
+
 
 ##############################################################################
 #

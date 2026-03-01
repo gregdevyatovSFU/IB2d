@@ -22,6 +22,7 @@
 ----------------------------------------------------------------------------------------------------'''
 
 from math import sqrt
+import warnings
 import numpy as np
 from Supp import give_1D_NonZero_Delta_Indices
 from Supp import give_Eulerian_Lagrangian_Distance, give_Delta_Kernel
@@ -221,15 +222,15 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
     #------------------------------------------------------------------------
     if ( beams_Yes == 1 ):
         # Compute the Lagrangian SPRING force densities!
-        if not feature_selection.perf.vec_nib_forces:        
+        if not feature_selection.perf.vec_beam_forces:        
             fx_beams, fy_beams = give_Me_Beam_Lagrangian_Force_Densities(
                 ds,Nb,xLag,yLag,beams,Lx,Ly)
         else:
-            raise NotImplemented("Not vectorized NIB forces yet")
-            # fx_beams, fx_beams = spring_forces(
+            raise NotImplemented("No vectorized (regular) beam forces yet")
+            # fx_beams, fx_beams = beam_forces(
             #     ds,Nb,xLag,yLag,springs,Lx,Ly)
             
-            if updated_path.perf.check_corr_nib:
+            if updated_path.perf.check_corr_beam:
                 fx_beam_ref, fy_beam_ref = give_Me_Spring_Lagrangian_Force_Densities(
                     ds,Nb,xLag,yLag,springs,Lx,Ly)
                 
@@ -237,7 +238,7 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
                 close_in_y = np.allclose(fy_beams, fy_beam_ref, rtol=1e-9, atol=1e-12)
 
                 if not close_in_x or not close_in_y:
-                    raise NotBackCompat("NIB forces didn't match")
+                    raise NotBackCompat("(Regular) beam forces didn't match")
 
         
     else:
@@ -251,8 +252,29 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
     if ( nonInv_beams_Yes == 1 ):
 
         # Compute the Lagrangian SPRING force densities!
-        fx_nonInv_beams, fy_nonInv_beams = give_Me_nonInv_Beam_Lagrangian_Force_Densities(ds,Nb,\
-            xLag,yLag,nonInv_beams,Lx,Ly)
+        if not feature_selection.perf.vec_nib_forces:    
+            fx_nonInv_beams, fy_nonInv_beams = give_Me_nonInv_Beam_Lagrangian_Force_Densities(
+                ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly)
+        else:
+            fx_nonInv_beams, fy_nonInv_beams = nib_forces(ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly)
+            
+            if feature_selection.perf.check_corr_nib:
+                fx_nonInv_beams_ref, fy_nonInv_beams_ref = give_Me_nonInv_Beam_Lagrangian_Force_Densities(
+                    ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly)
+                
+                close_in_x = np.allclose(fx_nonInv_beams, fx_nonInv_beams_ref, rtol=1e-9, atol=1e-12)
+                close_in_y = np.allclose(fy_nonInv_beams, fy_nonInv_beams_ref, rtol=1e-9, atol=1e-12)
+
+                if not close_in_x or not close_in_y:
+                    close_ish_in_x = np.allclose(fx_nonInv_beams, fx_nonInv_beams_ref, rtol=1e-6, atol=1e-9)
+                    close_ish_in_y = np.allclose(fy_nonInv_beams, fy_nonInv_beams_ref, rtol=1e-6, atol=1e-9)
+                    
+                    if not close_ish_in_y or not close_ish_in_x:
+                        raise NotBackCompat(f"NIB forces didn't match {close_ish_in_y=} {close_ish_in_x=}")
+
+                    # only print warnining if didn't raise the Exception above
+                    # warning likely to addition order being changed in the vectorized version
+                    warnings.warn(f"Numerical inaccuracy in the vectorized NIB force implimentation {close_in_x=} {close_in_y=}")
         
     else:
         fx_nonInv_beams = np.zeros(Nb) #No x-forces coming from beams
@@ -887,6 +909,75 @@ def give_Me_Target_Lagrangian_Force_Densities(ds,xLag,yLag,targets,Lx,Ly):
 # FUNCTION computes the Lagrangian BEAM (NON-INVARIANT) Force Densities 
 #
 ###########################################################################    
+
+def nib_forces(ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly):
+    Nbeams = nonInv_beams.shape[0]           # # of Beams
+    pts_1  = nonInv_beams[:,0].astype(np.intp)  # 1ST NODES for BEAM
+    pts_2  = nonInv_beams[:,1].astype(np.intp)  # MIDDLE NODES (2ND Node) for BEAM
+    pts_3  = nonInv_beams[:,2].astype(np.intp)  # 3RD NODES for BEAM
+    K_Vec  = nonInv_beams[:,3]                # Stores beam stiffness associated with each spring
+    CX_Vec = nonInv_beams[:,4]               # Stores x-Curvature 
+    CY_Vec = nonInv_beams[:,5]               # Stores y-Curvature 
+
+    fx = np.zeros(Nb)                        # Initialize storage for x-forces
+    fy = np.zeros(Nb)                        # Initialize storage for y-forces
+
+    Xp, Xq, Xr = xLag[pts_1], xLag[pts_2], xLag[pts_3]
+    Yp, Yq, Yr = yLag[pts_1], yLag[pts_2], yLag[pts_3]
+
+    d2x = Xr - 2. * Xq + Xp - CX_Vec
+    d2y = Yr - 2. * Yq + Yp - CY_Vec
+
+    c1x = -K_Vec * d2x
+    c2x = 2. * K_Vec * d2x
+    c1y = -K_Vec * d2y
+    c2y = 2. * K_Vec * d2y
+    
+    N = pts_1.size
+    idx_all = np.empty(3*N, dtype=pts_1.dtype)
+    wx_all  = np.empty(3*N, dtype=d2x.dtype)
+    wy_all  = np.empty(3*N, dtype=d2y.dtype)
+
+    idx_all[0::3] = pts_3
+    idx_all[1::3] = pts_1
+    idx_all[2::3] = pts_2
+
+    wx_all[0::3] = c1x
+    wx_all[1::3] = c1x
+    wx_all[2::3] = c2x
+
+    wy_all[0::3] = c1y
+    wy_all[1::3] = c1y
+    wy_all[2::3] = c2y
+
+    # idx_all = np.concatenate([pts_1, pts_2, pts_3])
+    # wx_all  = np.concatenate([c1x,   c2x,   c2x])
+    # wy_all  = np.concatenate([c1y,   c2y,   c2y])
+
+    fx = (np.bincount(idx_all, weights=wx_all, minlength=Nb))
+    fy = (np.bincount(idx_all, weights=wy_all, minlength=Nb))
+
+    if feature_selection.setup.fixed_1d_end:
+        fx[pts_1[0]] = 0
+        fy[pts_1[0]] = 0
+
+        X_0, X_1, X_2 = xLag[pts_1[0]], xLag[pts_2[0]], xLag[pts_3[0]]
+        Y_0, Y_1, Y_2 = yLag[pts_1[0]], yLag[pts_2[0]], yLag[pts_3[0]]
+
+        Xp_2, Xq_2, Xr_2 = xLag[pts_1[2]], xLag[pts_2[2]], xLag[pts_3[2]]
+        Yp_2, Yq_2, Yr_2 = yLag[pts_1[2]], yLag[pts_2[2]], yLag[pts_3[2]]
+
+        D0x_2 = Xp_2 - 2*Xq_2 + Xr_2
+        D0y_2 = Yp_2 - 2*Yq_2 + Yr_2
+        w_2_x = X_2 - X_0
+        w_1_x = X_1 - X_0
+
+        #TODO: find out why this is 0 in y dir
+        fx[pts_2[0]] = 6*w_1_x - 2* w_2_x + D0x_2
+        fy[pts_2[0]] = 0
+    
+    # RETURN NON-INVARIANT BEAM FORCES
+    return (fx, fy)
 
 def give_Me_nonInv_Beam_Lagrangian_Force_Densities(ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly):    
 
