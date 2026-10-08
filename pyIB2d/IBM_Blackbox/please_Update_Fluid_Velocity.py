@@ -307,7 +307,7 @@ def give_Me_Fluid_Velocity(dt,rho,dj,Nx,Ny,rhs_VEL_hat,p_hat,A_hat,sinIDXorIDY,s
         global ifft_mat
         vel_hat = ifft_mat
     else:
-        vel_hat = np.zeros((Ny,Nx),dtype='complex128') #initialize fluid velocity
+        vel_hat = np.zeros((Nx,Ny),dtype='complex128') #initialize fluid velocity
 
 
     if string=='x':
@@ -355,7 +355,7 @@ def give_RHS_FULL_Step_Term(dt,mu,rho,Nx,Ny,A,Ax,Ay,A_sq_j,AB_j,B,Fj,\
         global fft_mat
         rhs = fft_mat #use matrix tied to fftw plan
     else:
-        rhs = np.zeros((Ny,Nx)) #initialize rhs
+        rhs = np.zeros((Nx,Ny)) #initialize rhs
 
     if string=='x':
         rhs[:,:] = A + dt/rho*( Fj + mu/2*(Axx+Ayy) - 0.5*rho*(A*Ax+B*Ay) -\

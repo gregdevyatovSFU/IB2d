@@ -1635,6 +1635,8 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
             data_vars={
                 'X':      (('t', 's',), lagPts[:, 0][np.newaxis, :]),
                 'Y':      (('t', 's',), lagPts[:, 1][np.newaxis, :]),
+                'f_X':    (('t', 's',), F_Lag[:,0][np.newaxis, :]),
+                'f_Y':    (('t', 's',), F_Lag[:,1][np.newaxis, :]),
             },
             coords={
                 's': s_coord,

@@ -256,8 +256,14 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
             fx_nonInv_beams, fy_nonInv_beams = give_Me_nonInv_Beam_Lagrangian_Force_Densities(
                 ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly)
         else:
-            fx_nonInv_beams, fy_nonInv_beams = nib_forces(ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly)
-            
+            if not hasattr(nib_forces, "ds_b"):
+                n0, n1 = int(nonInv_beams[0,0]), int(nonInv_beams[0,1])
+                dx0, dy0 = xLag[n1] - xLag[n0], yLag[n1] - yLag[n0]
+                nib_forces.ds_b = np.hypot(dx0, dy0)
+                nib_forces.tx, nib_forces.ty = dx0/nib_forces.ds_b, dy0/nib_forces.ds_b
+
+            fx_nonInv_beams, fy_nonInv_beams = nib_forces(ds, Nb, xLag, yLag, nonInv_beams, Lx, Ly)
+
             if feature_selection.perf.check_corr_nib:
                 fx_nonInv_beams_ref, fy_nonInv_beams_ref = give_Me_nonInv_Beam_Lagrangian_Force_Densities(
                     ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly)
@@ -950,31 +956,20 @@ def nib_forces(ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly):
     wy_all[1::3] = c1y
     wy_all[2::3] = c2y
 
-    # idx_all = np.concatenate([pts_1, pts_2, pts_3])
-    # wx_all  = np.concatenate([c1x,   c2x,   c2x])
-    # wy_all  = np.concatenate([c1y,   c2y,   c2y])
-
     fx = (np.bincount(idx_all, weights=wx_all, minlength=Nb))
     fy = (np.bincount(idx_all, weights=wy_all, minlength=Nb))
 
     if feature_selection.setup.fixed_1d_end:
-        fx[pts_1[0]] = 0
-        fy[pts_1[0]] = 0
+        raise NotImplementedError("The un-vectorized version not updated yet")
+        n0, n1 = pts_1[0], pts_2[0]
+        k_Beam = K_Vec[0]
+        ds_b = nib_forces.ds_b
+        tx, ty = nib_forces.tx, nib_forces.ty
+        w1x = xLag[n1] - xLag[n0] - ds_b*tx
+        w1y = yLag[n1] - yLag[n0] - ds_b*ty
 
-        X_0, X_1, X_2 = xLag[pts_1[0]], xLag[pts_2[0]], xLag[pts_3[0]]
-        Y_0, Y_1, Y_2 = yLag[pts_1[0]], yLag[pts_2[0]], yLag[pts_3[0]]
-
-        Xp_2, Xq_2, Xr_2 = xLag[pts_1[2]], xLag[pts_2[2]], xLag[pts_3[2]]
-        Yp_2, Yq_2, Yr_2 = yLag[pts_1[2]], yLag[pts_2[2]], yLag[pts_3[2]]
-
-        D0x_2 = Xp_2 - 2*Xq_2 + Xr_2
-        D0y_2 = Yp_2 - 2*Yq_2 + Yr_2
-        w_2_x = X_2 - X_0
-        w_1_x = X_1 - X_0
-
-        #TODO: find out why this is 0 in y dir
-        fx[pts_2[0]] = 6*w_1_x - 2* w_2_x + D0x_2
-        fy[pts_2[0]] = 0
+        fx[n1] = fx[n1] - k_Beam*(2*w1x)
+        fy[n1] = fy[n1] - k_Beam*(2*w1y)
     
     # RETURN NON-INVARIANT BEAM FORCES
     return (fx, fy)
@@ -1038,10 +1033,12 @@ def give_Me_nonInv_Beam_Lagrangian_Force_Densities(ds,Nb,xLag,yLag,nonInv_beams,
         D0y_2 = Yp_2 - 2*Yq_2 + Yr_2
         w_2_x = X_2 - X_0
         w_1_x = X_1 - X_0
+        w_2_y = Y_2 - Y_0
+        w_1_y = Y_1 - Y_0
 
-        #TODO: find out why this is 0 in y dir
         fx[pts_2[0]] = 6*w_1_x - 2* w_2_x + D0x_2
-        fy[pts_2[0]] = 0
+        fy[pts_2[0]] = 6*w_1_y - 2* w_2_y + D0y_2
+
     # RETURN NON-INVARIANT BEAM FORCES
     return (fx, fy)
 
