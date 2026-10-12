@@ -1,5 +1,7 @@
 from typing import Callable, NamedTuple, Optional
 import logging
+
+import numpy as np
 from dataclasses import dataclass, field, replace
 from functools import partial, partialmethod
 
@@ -75,8 +77,18 @@ class ExtraParams(NamedTuple):
         update_noninv_beams_func:           Optional[Callable] = None
         update_damped_springs_func:         Optional[Callable] = None
 
+    class TriElements(NamedTuple):
+        """Linear triangle elements, indexed into the global Lagrangian points."""
+        tris:   np.ndarray  # (M, 3) vertex indices
+        Dm_inv: np.ndarray  # (M, 2, 2) inverse of the rest edge matrix [p1 - p0, p2 - p0]
+        area:   np.ndarray  # (M,) rest area (times thickness)
+        mu:     np.ndarray  # (M,) Lame parameters (plane stress)
+        lam:    np.ndarray  # (M,)
+        model:  str = "stvk"  # "linear" (CST) or "stvk" (St Venant-Kirchhoff)
+
     update_funcs: UpdateFuncs
     external_force_func: Optional[Callable] = None
+    tri_elements: Optional[TriElements] = None
 
 class NotBackCompat(Exception):
     pass

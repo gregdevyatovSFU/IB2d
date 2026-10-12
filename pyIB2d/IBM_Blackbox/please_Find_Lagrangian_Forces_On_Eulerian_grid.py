@@ -42,7 +42,8 @@ ib2d_logger = logging.getLogger("ib2d")
 
 def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,\
     xLag_P,yLag_P, x, y, grid_Info, model_Info, springs, targets, beams, nonInv_beams,\
-    muscles, muscles3, masses, d_Springs, general_force, poroelastic_info):
+    muscles, muscles3, masses, d_Springs, general_force, poroelastic_info,
+    tri_elements=None):
     ''' Compute components of force term in Navier-Stokes from boundary deformations
 
         Args:
@@ -311,11 +312,21 @@ def please_Find_Lagrangian_Forces_On_Eulerian_grid(dt, current_time, xLag, yLag,
         fy_genForce = np.zeros(Nb) #No y-forces coming from damped springs
 
 
+    #-----------------------------------------------------------------------------------
+    # Compute TRIANGLE ELEMENT FORCE DENSITIES (if passed in through ExtraParams)
+    #-----------------------------------------------------------------------------------
+    if tri_elements is not None:
+        fx_tris, fy_tris = triangle_forces(ds, Nb, xLag, yLag, tri_elements)
+    else:
+        fx_tris = np.zeros(Nb)
+        fy_tris = np.zeros(Nb)
+
+
     #-----------------------------------------------------
     #     ******** SUM TOTAL FORCE DENSITY! ********
     #------------------------------------------------------
-    fx = fx_springs + fx_target + fx_beams + fx_nonInv_beams + fx_muscles + fx_muscles3 + fx_mass + fx_dSprings + fx_genForce
-    fy = fy_springs + fy_target + fy_beams + fy_nonInv_beams + fy_muscles + fy_muscles3 + fy_mass + fy_dSprings + fy_genForce
+    fx = fx_springs + fx_target + fx_beams + fx_nonInv_beams + fx_muscles + fx_muscles3 + fx_mass + fx_dSprings + fx_genForce + fx_tris
+    fy = fy_springs + fy_target + fy_beams + fy_nonInv_beams + fy_muscles + fy_muscles3 + fy_mass + fy_dSprings + fy_genForce + fy_tris
 
 
     #-----------------------------------------------------
@@ -604,6 +615,47 @@ def spring_forces(ds,Nb,xLag,yLag,springs,Lx,Ly):
         - np.bincount(follower, sFy, minlength=Nb))
 
     return fx, fy
+
+
+def triangle_forces(ds, Nb, xLag, yLag, tri_elements):
+    ''' [Vectorized] Force densities from linear triangle elements (plane stress)
+
+    model "linear" is the constant strain triangle (CST); "stvk" is St Venant-Kirchhoff,
+    which has the same stiffness at rest but is invariant to rotation.
+    Elements are assumed not to straddle the periodic boundary.
+
+    Args:
+        ds:           Lagrangian spacing (IB2d spreads f * ds, so nodal forces are divided by it)
+        tri_elements: ExtraParams.TriElements
+
+    Returns:
+        fx, fy: Lagrangian force densities'''
+    t = tri_elements.tris
+    p = np.stack([xLag[t], yLag[t]], axis=-1)                     # (M, 3, 2) corner positions
+    Ds = np.stack([p[:, 1] - p[:, 0], p[:, 2] - p[:, 0]], axis=-1)  # (M, 2, 2) edges as columns
+    F = Ds @ tri_elements.Dm_inv                                   # deformation gradient
+
+    I = np.eye(2)
+    mu = tri_elements.mu[:, None, None]
+    lam = tri_elements.lam[:, None, None]
+    trace = lambda A: np.trace(A, axis1=1, axis2=2)[:, None, None]
+
+    if tri_elements.model == "linear":
+        eps = 0.5 * (F + F.transpose(0, 2, 1)) - I
+        P = 2.0 * mu * eps + lam * trace(eps) * I
+    elif tri_elements.model == "stvk":
+        Eg = 0.5 * (F.transpose(0, 2, 1) @ F - I)
+        P = F @ (2.0 * mu * Eg + lam * trace(Eg) * I)
+    else:
+        raise ValueError(f"Unknown triangle model: {tri_elements.model}")
+
+    # Nodal forces f_i = -d(A W)/dx_i: corners 1 and 2 from H, corner 0 balances them
+    H = -tri_elements.area[:, None, None] * P @ tri_elements.Dm_inv.transpose(0, 2, 1)
+    f = np.stack([-(H[:, :, 0] + H[:, :, 1]), H[:, :, 0], H[:, :, 1]], axis=1)  # (M, 3, 2)
+
+    fx = np.bincount(t.ravel(), f[:, :, 0].ravel(), minlength=Nb)
+    fy = np.bincount(t.ravel(), f[:, :, 1].ravel(), minlength=Nb)
+    return fx / ds, fy / ds
 ###########################################################################
 #
 # FUNCTION computes the Lagrangian SPRING Force Densities .
@@ -960,7 +1012,6 @@ def nib_forces(ds,Nb,xLag,yLag,nonInv_beams,Lx,Ly):
     fy = (np.bincount(idx_all, weights=wy_all, minlength=Nb))
 
     if feature_selection.setup.fixed_1d_end:
-        raise NotImplementedError("The un-vectorized version not updated yet")
         n0, n1 = pts_1[0], pts_2[0]
         k_Beam = K_Vec[0]
         ds_b = nib_forces.ds_b
@@ -1020,6 +1071,7 @@ def give_Me_nonInv_Beam_Lagrangian_Force_Densities(ds,Nb,xLag,yLag,nonInv_beams,
         fy[id_2] = fy[id_2] + 2*k_Beam*( Yr - 2*Yq + Yp - Cy )
 
     if feature_selection.setup.fixed_1d_end:
+        raise NotImplementedError("The un-vectorized version not updated yet")
         fx[pts_1[0]] = 0
         fy[pts_1[0]] = 0
 
