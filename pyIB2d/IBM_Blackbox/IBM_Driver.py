@@ -750,6 +750,11 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
         #--------------------------------------------------------------------------------------------
         xLag_h,yLag_h = please_Move_Lagrangian_Point_Positions(mu, U, V, xLag, yLag,\
             xLag, yLag, x, y, dt/2, grid_Info, 0, poroelastic_Yes, poroelastic_info, F_Poro)
+
+        # Tracers take the same midpoint step as the Lagrangian points (passive, no force)
+        if tracers_Yes:
+            xT_h, yT_h = please_Move_Lagrangian_Point_Positions(mu, U, V, xT, yT,
+                xT, yT, x, y, dt/2, grid_Info)
             
         if mass_Yes:
             mass_info, massLagsOld = please_Move_Massive_Boundary(dt/2,\
@@ -865,8 +870,8 @@ def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,La
             
         # If there are tracers, update tracer positions #
         if tracers_Yes:
-            xT, yT = please_Move_Lagrangian_Point_Positions(Uh, Vh, xT, yT, xT, yT,\
-                x, y, dt, grid_Info,0) #0 for always no porous tracers
+            xT, yT = please_Move_Lagrangian_Point_Positions(mu, Uh, Vh, xT, yT, xT_h, yT_h,
+                x, y, dt, grid_Info)
             tracers[:,1] = xT
             tracers[:,2] = yT
             
@@ -1646,6 +1651,20 @@ def print_vtk_files(Output_Params,ctsave,vort,uMag,p,U,V,Lx,Ly,Nx,Ny,lagPts,spri
             attrs={}
         )
         ds_l.to_netcdf(lag_file, unlimited_dims='t')
+
+        if tracers[0, 0] == 1:
+            ds_t = xr.Dataset(
+                data_vars={
+                    'X': (('t', 's',), tracers[:, 1][np.newaxis, :]),
+                    'Y': (('t', 's',), tracers[:, 2][np.newaxis, :]),
+                },
+                coords={
+                    's': np.arange(0, tracers.shape[0]),
+                    't': [current_time],
+                },
+                attrs={}
+            )
+            ds_t.to_netcdf(data_path / f"tracers.{strNUM}.nc", unlimited_dims='t')
 
 
 
