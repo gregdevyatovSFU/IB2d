@@ -26,14 +26,15 @@ from typing import Optional
 import numpy as np
 from math import sqrt
 import os
-from Supp import *
-from please_Find_Lagrangian_Forces_On_Eulerian_grid import\
+from .Supp import (D, please_Move_Lagrangian_Point_Positions, please_Move_Massive_Boundary,
+                   please_Update_Adv_Diff_Concentration, please_Update_Massive_Boundary_Velocity)
+from .please_Find_Lagrangian_Forces_On_Eulerian_grid import\
     please_Find_Lagrangian_Forces_On_Eulerian_grid
-from please_Update_Fluid_Velocity import please_Update_Fluid_Velocity
-from please_Compute_Porous_Slip_Velocity import\
+from .please_Update_Fluid_Velocity import please_Update_Fluid_Velocity
+from .please_Compute_Porous_Slip_Velocity import\
     please_Compute_Porous_Slip_Velocity
-from please_Plot_Results import please_Plot_Results
-from please_Compute_Normal_Tangential_Forces_On_Lag_Pts import \
+from .please_Plot_Results import please_Plot_Results
+from .please_Compute_Normal_Tangential_Forces_On_Lag_Pts import \
     please_Compute_Normal_Tangential_Forces_On_Lag_Pts
 
 import logging
@@ -50,7 +51,7 @@ try:
     import write
     C_flag = True
     ib2d_logger.info('Running with compiled C I/O library.')
-except:
+except ImportError:
     C_flag = False
 
 #Switch for vtk library writes (this will be overridden by C_flag)
@@ -58,7 +59,7 @@ try:
     import vtk
     from vtk.util import numpy_support
     vtk_lib_flag = True
-except:
+except ImportError:
     vtk_lib_flag = False
     if not C_flag:
         ib2d_logger.info('Running without optimized IO libraries (VTK or C).')
@@ -71,7 +72,7 @@ except:
 ###############################################################################
 
 
-from extra_interface import feature_selection, ExtraParams
+from .extra_interface import feature_selection, ExtraParams
 
 def main(Fluid_Params,Grid_Params,Time_Params,Lag_Struct_Params,Output_Params,Lag_Name_Params,
          extra_params: Optional[ExtraParams] = None):

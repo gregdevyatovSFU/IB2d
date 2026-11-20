@@ -24,10 +24,10 @@
 from math import sqrt
 import warnings
 import numpy as np
-from Supp import give_1D_NonZero_Delta_Indices
-from Supp import give_Eulerian_Lagrangian_Distance, give_Delta_Kernel
+from .Supp import give_1D_NonZero_Delta_Indices
+from .Supp import give_Eulerian_Lagrangian_Distance, give_Delta_Kernel
 
-from extra_interface import feature_selection, NotBackCompat
+from .extra_interface import feature_selection, NotBackCompat
 
 import logging
 ib2d_logger = logging.getLogger("ib2d")

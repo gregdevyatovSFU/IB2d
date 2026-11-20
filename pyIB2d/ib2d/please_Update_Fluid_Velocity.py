@@ -35,10 +35,10 @@ try:
     ifft_mat = None
     FFTW = True
     ib2d_logger.debug('Running with pyFFTW.')
-except:
+except ImportError:
     ib2d_logger.debug('Running without pyFFTW library.')
     FFTW = False
-from Supp import D, DD
+from .Supp import D, DD
 
 ################################################################################
 #

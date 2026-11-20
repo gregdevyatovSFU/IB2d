@@ -22,7 +22,7 @@
 ----------------------------------------------------------------------------------------------------'''
 
 from pathlib import Path
-from please_Read_input2d_File import please_Read_input2d_File
+from .please_Read_input2d_File import please_Read_input2d_File
 import numpy as np
 import sys
 from collections import OrderedDict
@@ -355,7 +355,7 @@ def please_Initialize_Lag_Name_Inputs(Lag_Name_Input):
 #
 #################################################################################
 
-def please_Initialize_Simulation(input_file: Path = None):
+def please_Initialize_Simulation(input_file: str | None = None):
 
     
     #

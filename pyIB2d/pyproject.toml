@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ib2d"
+version = "0.1.0"
+description = "Python IB2d immersed boundary solver"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "numba",
+    "matplotlib",
+    "pyqt5; sys_platform == 'darwin'",
+    "xarray",
+]
+
+[project.optional-dependencies]
+fftw = ["pyfftw"]
+
+[tool.setuptools]
+packages = ["ib2d"]
